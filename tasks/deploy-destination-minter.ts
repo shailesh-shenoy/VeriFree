@@ -4,7 +4,7 @@ import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { getPrivateKey, getProviderRpcUrl, getRouterConfig } from "./utils";
 import { Wallet, ethers } from "ethers";
-import { DestinationMinter, MyNFT, MyNFT__factory } from "../typechain-types";
+import { DestinationVSBTMinter } from "../typechain-types";
 import { Spinner } from "../utils/spinner";
 
 task(`deploy-destination-minter`, `Deploys MyNFT.sol and DestinationMinter.sol smart contracts`)
@@ -21,31 +21,36 @@ task(`deploy-destination-minter`, `Deploys MyNFT.sol and DestinationMinter.sol s
 
         const spinner: Spinner = new Spinner();
 
-        console.log(`ℹ️  Attempting to deploy MyNFT smart contract on the ${hre.network.name} blockchain using ${deployer.address} address`);
+        const tokenUri = "https://ipfs.io/ipfs/QmRU1p26avetiPsg2goTUhySZDbEwXxMaYU4DCCkpc5xnP"
+
         spinner.start();
 
-        const myNft: MyNFT = await hre.ethers.deployContract("MyNFT");
-        await myNft.waitForDeployment();
+        const _initialSourceChainSelector = getRouterConfig("polygonMumbai").chainSelector;
+        // const myNft: MyNFT = await hre.ethers.deployContract("MyNFT");
+        // await myNft.waitForDeployment();
+
+        // spinner.stop();
+        // console.log(`✅ MyNFT contract deployed at address ${myNft.target} on the ${hre.network.name} blockchain`)
+
+        // console.log(`ℹ️  Attempting to deploy DestinationMinter smart contract on the ${hre.network.name} blockchain using ${deployer.address} address, with the Router address ${routerAddress} provided as constructor argument`);
+        // spinner.start();
+
+        const destinationVSBTMinter: DestinationVSBTMinter = await hre.ethers.deployContract("DestinationVSBTMinter", [routerAddress, _initialSourceChainSelector, tokenUri]);
+        await destinationVSBTMinter.waitForDeployment();
+
 
         spinner.stop();
-        console.log(`✅ MyNFT contract deployed at address ${myNft.target} on the ${hre.network.name} blockchain`)
-
-        console.log(`ℹ️  Attempting to deploy DestinationMinter smart contract on the ${hre.network.name} blockchain using ${deployer.address} address, with the Router address ${routerAddress} provided as constructor argument`);
-        spinner.start();
-
-        const destinationMinter: DestinationMinter = await hre.ethers.deployContract("DestinationMinter", [routerAddress, myNft.getAddress()]);
-        await destinationMinter.waitForDeployment();
+        const vsbtAddress = await destinationVSBTMinter.vsbt();
+        console.log(`✅ DestinationMinter contract deployed at address ${destinationVSBTMinter.target} with VSBT contract at ${vsbtAddress} on the ${hre.network.name} blockchain`);
 
 
-        spinner.stop();
-        console.log(`✅ DestinationMinter contract deployed at address ${destinationMinter.target} on the ${hre.network.name} blockchain`);
 
-        console.log(`ℹ️  Attempting to grant the minter role to the DestinationMinter smart contract`);
-        spinner.start();
+        // console.log(`ℹ️  Attempting to grant the minter role to the DestinationMinter smart contract`);
+        // spinner.start();
 
-        const tx = await myNft.transferOwnership(destinationMinter.getAddress());
-        await tx.wait();
+        // const tx = await myNft.transferOwnership(destinationMinter.getAddress());
+        // await tx.wait();
 
-        spinner.stop();
-        console.log(`✅ DestinationMinter can now mint MyNFTs. Transaction hash: ${tx.hash}`);
+        // spinner.stop();
+        // console.log(`✅ DestinationMinter can now mint MyNFTs. Transaction hash: ${tx.hash}`);
     })

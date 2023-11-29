@@ -6,7 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {VerifiedStudentSBT} from "./VerifiedStudentSBT.sol";
 
-contract DestinationMinter is CCIPReceiver, Ownable {
+contract DestinationVSBTMinter is CCIPReceiver, Ownable {
     VerifiedStudentSBT public vsbt;
 
     // Mapping to keep track of allowed source chains
@@ -19,7 +19,6 @@ contract DestinationMinter is CCIPReceiver, Ownable {
     event ContractInitialized(
         address indexed _vsbtAddress,
         uint64 indexed _initialSourceChainSelector,
-        address indexed _initialVerifierAddress,
         string _tokenUri
     );
 
@@ -47,6 +46,9 @@ contract DestinationMinter is CCIPReceiver, Ownable {
         uint256 _tokenId
     );
 
+    error SourceChainNotAllowlisted(uint64 sourceChainSelector);
+    error SenderNotAllowlisted(address sender);
+
     /**
      * @dev Constructor: Initialize DestinationMinter contract
      * Deploy a new VerifiedStudentSBT contract with the tokenUri.
@@ -57,16 +59,13 @@ contract DestinationMinter is CCIPReceiver, Ownable {
     constructor(
         address _router,
         uint64 _initialSourceChainSelector,
-        address _initialVerifierAddress,
         string memory _tokenUri
     ) CCIPReceiver(_router) {
         vsbt = new VerifiedStudentSBT(_tokenUri);
         allowListedSourceChains[_initialSourceChainSelector] = true;
-        allowListedSenders[_initialVerifierAddress] = true;
         emit ContractInitialized(
             address(vsbt),
             _initialSourceChainSelector,
-            _initialVerifierAddress,
             _tokenUri
         );
     }
@@ -83,14 +82,13 @@ contract DestinationMinter is CCIPReceiver, Ownable {
             message.data
         );
 
-        require(
-            allowListedSourceChains[message.sourceChainSelector],
-            "DestinationVSBTMinter: Source chain not allowed to send CCIP messages."
-        );
-        require(
-            allowListedSenders[_verifierAddress],
-            "DestinationVSBTMinter: Sender not allowed to send CCIP messages."
-        );
+        if (!allowListedSourceChains[message.sourceChainSelector]) {
+            revert SourceChainNotAllowlisted(message.sourceChainSelector);
+        }
+        if (!allowListedSenders[_verifierAddress]) {
+            revert SenderNotAllowlisted(_verifierAddress);
+        }
+
         // Decode the receiver address from the CCIP message data. This will revert if the data is not a valid address.
         address _receiverAddress = abi.decode(message.data, (address));
         // Mint a new VSBT to the receiver address.

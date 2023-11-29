@@ -42,6 +42,7 @@ contract StudentVerifier is ZKPVerifier {
         address indexed _receiverAddress,
         address _verifiedAddress
     );
+    event WithdrawLinkToken(address indexed _beneficiary, uint256 _amount);
 
     error MessageSenderNotInProof(address _sender);
     error ProofAlreadySubmitted(address _sender, uint256 _id);
@@ -179,5 +180,16 @@ contract StudentVerifier is ZKPVerifier {
             receiverAddress,
             _msgSender()
         );
+    }
+
+    /**
+     * @dev Withdraw LINK token from the contract.
+     * Can only be called by the owner of the contract.
+     * @param beneficiary The address to withdraw the LINK token to.
+     */
+    function withdrawLinkToken(address beneficiary) public onlyOwner {
+        uint256 amount = linkToken.balanceOf(address(this));
+        linkToken.transfer(beneficiary, amount);
+        emit WithdrawLinkToken(beneficiary, amount);
     }
 }
