@@ -1,0 +1,41 @@
+{
+  "name": "verifree-ui",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.8.2",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@rainbow-me/rainbowkit": "^1.3.0",
+    "@react-email/button": "0.0.11",
+    "@react-email/components": "^0.0.11",
+    "@react-email/head": "0.0.6",
+    "@react-email/html": "0.0.6",
+    "axios": "^1.6.2",
+    "framer-motion": "^10.6.8",
+    "next": "^13.4.19",
+    "nodemailer": "^6.9.7",
+    "qrcode": "^1.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-email": "1.9.5",
+    "viem": "~1.19.4",
+    "wagmi": "~1.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^18.18.10",
+    "@types/nodemailer": "^6.4.14",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.2.37",
+    "eslint": "^8.15.0",
+    "eslint-config-next": "^13.4.19",
+    "prettier": "^2.5.1",
+    "typescript": "^5.0.4"
+  }
+}
