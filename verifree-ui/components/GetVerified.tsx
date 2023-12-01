@@ -1,5 +1,6 @@
 'use client'
 
+import { IssueRequest } from '@/types'
 import {
     Box,
     Flex,
@@ -15,7 +16,17 @@ import {
     useBreakpointValue,
     IconProps,
     Icon,
+    InputGroup,
+    InputRightAddon,
+    Select,
+    Tooltip,
+    useToast,
 } from '@chakra-ui/react'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
+import axios from 'axios'
+import { use, useState } from 'react'
+import { fromHex } from 'viem'
+import { useAccount } from 'wagmi'
 
 const avatars = [
     {
@@ -51,6 +62,64 @@ const Blur = (props: IconProps) => {
 }
 
 export default function GetVerified() {
+    const { address, isConnected } = useAccount();
+    // Convert the ethereum address to a BigNumber and get last 15 digits
+    const addressBigInt = address
+        ? BigInt(fromHex(address, "bigint"))
+        : BigInt(0);
+    const addressLast15 = Number(
+        addressBigInt ? addressBigInt % BigInt(1000000000000000) : BigInt(0)
+    );
+    const [studentEmail, setStudentEmail] = useState("");
+    const [emailDomain, setEmailDomain] = useState("@northeastern.edu");
+    const emailDomains = ["@northeastern.edu", "@mit.edu", "@harvard.edu", "@umass.edu"];
+    const [loading, setLoading] = useState(false);
+    const toast = useToast();
+
+    async function handleSubmit(e: any) {
+        e.preventDefault();
+        setLoading(true);
+        const studentFullEmail = studentEmail + emailDomain;
+        console.log(`isConnected: ${isConnected}`);
+        const issueRequest: IssueRequest = {
+            studentEmail: studentFullEmail,
+            address: address?.toString() ?? "",
+            addressLast15,
+        };
+        try {
+            const response = await axios.post("/api/verify-email", issueRequest, { timeout: 60000, validateStatus: (status) => status < 500 });
+            if (response.status === 200) {
+                toast({
+                    title: "Email sent successfully!",
+                    description: "Please check your student email for further instructions.",
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                })
+            } else {
+                toast({
+                    title: "Email verification failed.",
+                    description: response?.data?.message ?? `Email while sending verification email. Status: ${response.statusText}`,
+                    status: "warning",
+                    duration: 5000,
+                    isClosable: true,
+                })
+            }
+        } catch (error: any) {
+            toast({
+                title: "Email verification failed.",
+                description: `Error while sending verification mail: ${error?.message}`,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            })
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
+
     return (
         <Box position={'relative'}>
             <Container
@@ -64,7 +133,7 @@ export default function GetVerified() {
                         lineHeight={1.1}
                         fontSize={{ base: '3xl', sm: '4xl', md: '5xl', lg: '6xl' }}>
                         Get verified using PolygonID{' '}
-                        <Text as={'span'} bgGradient="linear(to-r, purple.400,red.600)" bgClip="text">
+                        <Text as={'span'} bgGradient="linear(to-r, #7b3fe4,#e84142)" bgClip="text">
                             &
                         </Text>{' '}
                         access the VeriFree DAO.
@@ -91,69 +160,124 @@ export default function GetVerified() {
                     rounded={'xl'}
                     p={{ base: 4, sm: 6, md: 8 }}
                     spacing={{ base: 8 }}
-                    maxW={{ lg: 'lg' }}>
+                    maxW={{ base: '2xl', md: '2xl' }}>
                     <Stack spacing={4}>
                         <Heading
                             color={'gray.800'}
                             lineHeight={1.1}
                             fontSize={{ base: '2xl', sm: '3xl', md: '4xl' }}>
-                            Join our team
-                            <Text as={'span'} bgGradient="linear(to-r, red.400,pink.400)" bgClip="text">
-                                !
-                            </Text>
+                            Verification Request
+
                         </Heading>
                         <Text color={'gray.500'} fontSize={{ base: 'sm', sm: 'md' }}>
-                            We’re looking for amazing engineers just like you! Become a part of our
-                            rockstar engineering team and skyrocket your career!
+                            Your wallet address and email will be used to generate your PolygonID Verified Student Credential.
+                            An email will be sent to your student email address with further instructions.
                         </Text>
                     </Stack>
-                    <Box as={'form'} mt={10}>
+                    <Box as={'form'} mt={4} onSubmit={handleSubmit}>
                         <Stack spacing={4}>
-                            <Input
-                                placeholder="Firstname"
-                                bg={'gray.100'}
-                                border={0}
-                                color={'gray.500'}
-                                _placeholder={{
-                                    color: 'gray.500',
-                                }}
-                            />
-                            <Input
-                                placeholder="firstname@lastname.io"
-                                bg={'gray.100'}
-                                border={0}
-                                color={'gray.500'}
-                                _placeholder={{
-                                    color: 'gray.500',
-                                }}
-                            />
-                            <Input
-                                placeholder="+1 (___) __-___-___"
-                                bg={'gray.100'}
-                                border={0}
-                                color={'gray.500'}
-                                _placeholder={{
-                                    color: 'gray.500',
-                                }}
-                            />
-                            <Button fontFamily={'heading'} bg={'gray.200'} color={'gray.800'}>
-                                Upload CV
-                            </Button>
+                            <Tooltip
+                                hasArrow
+                                p={4}
+                                placement={'right-start'}
+                                label={`Ensure that you use the correct wallet address as only this address will be able to verify the proof on-chain and join the VeriFree DAO.`}
+                                bg="gray.700"
+                                color="white"
+
+                            >
+                                <InputGroup>
+                                    <Input placeholder="Wallet Address"
+                                        variant={'filled'}
+                                        required
+                                        bg={'gray.100'}
+                                        isReadOnly
+                                        color={'gray.500'}
+                                        _placeholder={{
+                                            color: 'gray.500',
+                                        }} value={isConnected ? address : ""} />
+                                    <InputRightAddon p={0}><ConnectButton showBalance={false} chainStatus={"none"} accountStatus={'avatar'} /></InputRightAddon>
+                                </InputGroup>
+                            </Tooltip>
+                            <Tooltip
+                                hasArrow
+                                p={4}
+                                placement={'right-start'}
+                                label={`The last 15 digits of your wallet address' BigInt representation. 
+                                This number is unique to your wallet address and will be used to prove your Verified Student Credential on-chain.`}
+                                bg="gray.700"
+                                color="white"
+                            >
+                                <Input
+                                    variant={'filled'}
+                                    placeholder="Address Last 15 Digits"
+                                    value={addressLast15 ? addressLast15.toString() : ""}
+                                    bg={'gray.100'}
+                                    color={'gray.500'}
+                                    _placeholder={{
+                                        color: 'gray.500',
+                                    }}
+                                    isReadOnly
+                                /></Tooltip>
+                            <Tooltip
+                                hasArrow
+                                p={4}
+                                placement={'right-start'}
+                                label={`Enter a valid email address to receive your Verified Student Credential. Only the listed domain names are allowed.`}
+                                bg="gray.700"
+                                color="white"
+                            >
+                                <InputGroup>
+                                    <Input
+                                        variant={'outline'}
+                                        placeholder="email"
+                                        color={'gray.500'}
+                                        _placeholder={{
+                                            color: 'gray.500',
+                                        }}
+                                        value={studentEmail}
+                                        onChange={(e) => setStudentEmail(e.target.value)}
+                                        autoComplete="none"
+                                    />
+                                    <InputRightAddon p={0}><Select bg={'gray.200'} value={emailDomain} onChange={(e: any) => {
+                                        setEmailDomain(e.target.value)
+                                    }}>
+                                        {emailDomains.map((domain) => (
+                                            <option key={domain} value={domain}
+                                            >{domain}</option>
+                                        ))}
+                                    </Select></InputRightAddon>
+                                </InputGroup>
+                            </Tooltip>
                         </Stack>
-                        <Button
-                            fontFamily={'heading'}
-                            mt={8}
-                            w={'full'}
-                            bgGradient="linear(to-r, red.400,pink.400)"
-                            color={'white'}
-                            _hover={{
-                                bgGradient: 'linear(to-r, red.400,pink.400)',
-                                boxShadow: 'xl',
-                            }}>
-                            Submit
-                        </Button>
+                        <Tooltip
+                            hasArrow
+                            p={4}
+                            placement={'right-start'}
+                            label={`You will receive an email with further instructions to receive your Verified Student Credential if the entered details are valid.`}
+                            bg="gray.700"
+                            color="white"
+                        >
+                            <Button
+                                type="submit"
+                                fontFamily={'heading'}
+                                isLoading={loading}
+                                mt={8}
+                                isDisabled={
+                                    addressLast15 === 0 ||
+                                    studentEmail.length === 0 ||
+                                    !isConnected
+                                }
+                                w={'full'}
+                                bgGradient="linear(to-r, #7b3fe4,#e84142)"
+                                color={'white'}
+                                _hover={{
+                                    bgGradient: 'linear(to-r, #7b3fe4,#e84142)',
+                                    boxShadow: 'xl',
+                                }}>
+                                Get Verification Email
+                            </Button>
+                        </Tooltip>
                     </Box>
-                    form
                 </Stack>
             </Container>
             <Blur position={'absolute'} top={-10} left={-10} style={{ filter: 'blur(70px)' }} />
