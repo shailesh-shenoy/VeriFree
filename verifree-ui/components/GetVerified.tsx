@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import axios from 'axios'
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { fromHex } from 'viem'
 import { useAccount } from 'wagmi'
 
@@ -71,10 +71,35 @@ export default function GetVerified() {
         addressBigInt ? addressBigInt % BigInt(1000000000000000) : BigInt(0)
     );
     const [studentEmail, setStudentEmail] = useState("");
-    const [emailDomain, setEmailDomain] = useState("@northeastern.edu");
-    const emailDomains = ["@northeastern.edu", "@mit.edu", "@harvard.edu", "@umass.edu"];
+    const [emailDomain, setEmailDomain] = useState("");
+    const [emailDomains, setEmailDomains] = useState(["@northeastern.edu", "@mit.edu", "@harvard.edu", "@umass.edu"]);
     const [loading, setLoading] = useState(false);
     const toast = useToast();
+
+    useEffect(() => {
+        axios.get("/api/valid-domains", { timeout: 60000 }).
+            then((res) => {
+                if (res.data?.length > 0) {
+                    setEmailDomains(res.data);
+                } else {
+                    toast({
+                        title: "Error while fetching valid email domains.",
+                        description: "The email domain list might not be up to date.",
+                        status: "error",
+                        duration: 5000,
+                        isClosable: true,
+                    })
+                }
+            }).catch((error) => {
+                toast({
+                    title: "Error while fetching valid email domains.",
+                    description: `The email domain list might not be up to date: ${error?.message}`,
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                })
+            });
+    }, []);
 
     async function handleSubmit(e: any) {
         e.preventDefault();
@@ -108,7 +133,7 @@ export default function GetVerified() {
         } catch (error: any) {
             toast({
                 title: "Email verification failed.",
-                description: `Error while sending verification mail: ${error?.message}`,
+                description: `Error while sending verification mail: ${error?.response?.data?.message ?? error?.message}`,
                 status: "error",
                 duration: 5000,
                 isClosable: true,
@@ -195,7 +220,6 @@ export default function GetVerified() {
                                         _placeholder={{
                                             color: 'gray.500',
                                         }} value={isConnected ? address : ""} />
-                                    <InputRightAddon p={0}><ConnectButton showBalance={false} chainStatus={"none"} accountStatus={'avatar'} /></InputRightAddon>
                                 </InputGroup>
                             </Tooltip>
                             <Tooltip
@@ -241,6 +265,7 @@ export default function GetVerified() {
                                     <InputRightAddon p={0}><Select bg={'gray.200'} value={emailDomain} onChange={(e: any) => {
                                         setEmailDomain(e.target.value)
                                     }}>
+                                        <option value="" disabled>Select Domain</option>
                                         {emailDomains.map((domain) => (
                                             <option key={domain} value={domain}
                                             >{domain}</option>
@@ -265,7 +290,8 @@ export default function GetVerified() {
                                 isDisabled={
                                     addressLast15 === 0 ||
                                     studentEmail.length === 0 ||
-                                    !isConnected
+                                    !isConnected ||
+                                    emailDomain.length === 0
                                 }
                                 w={'full'}
                                 bgGradient="linear(to-r, #7b3fe4,#e84142)"

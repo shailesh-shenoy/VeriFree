@@ -29,26 +29,9 @@ export const handleEmailFire = async (issueDetails: IssueDetails) => {
 };
 
 export async function validEmailDomain(email: string): Promise<boolean> {
-  const DB_API_URL = process.env.DB_API_URL
-  const DB_API_KEY = process.env.DB_API_KEY
-  const DB_DATA_SOURCE = process.env.DB_DATA_SOURCE
-  const DB_DATABASE = process.env.DB_DATABASE
-  const DB_ALLOWED_DOMAINS_COLLECTION = process.env.DB_ALLOWED_DOMAINS_COLLECTION
-  const response = await axios.post(`${DB_API_URL}/action/find`, {
-    dataSource: DB_DATA_SOURCE,
-    database: DB_DATABASE,
-    collection: DB_ALLOWED_DOMAINS_COLLECTION,
-  },
-    {
-      headers: {
-        "api-key": DB_API_KEY,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-    }
-  )
 
-  const allowedDomainsInDB: string[] = response.data?.documents?.map((document: any) => document?.domain)
+
+  const allowedDomainsInDB: string[] = await getValidDomains()
   if (!allowedDomainsInDB || allowedDomainsInDB.length === 0) {
     throw new Error("No allowed domains found.")
   }
@@ -83,4 +66,51 @@ export async function emailAlreadyVerified(email: string): Promise<boolean> {
     }
   )
   return response.data?.documents?.length > 0
+}
+
+export async function addVerifiedEmail(email: string): Promise<void> {
+  const DB_API_URL = process.env.DB_API_URL
+  const DB_API_KEY = process.env.DB_API_KEY
+  const DB_DATA_SOURCE = process.env.DB_DATA_SOURCE
+  const DB_DATABASE = process.env.DB_DATABASE
+  const DB_VERIFIED_EMAILS_COLLECTION = process.env.DB_VERIFIED_EMAILS_COLLECTION
+  const response = await axios.post(`${DB_API_URL}/action/insertOne`, {
+    dataSource: DB_DATA_SOURCE,
+    database: DB_DATABASE,
+    collection: DB_VERIFIED_EMAILS_COLLECTION,
+    document: {
+      email: email
+    }
+  },
+    {
+      headers: {
+        "api-key": DB_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    }
+  )
+  return response.data
+}
+
+export async function getValidDomains(): Promise<string[]> {
+  const DB_API_URL = process.env.DB_API_URL
+  const DB_API_KEY = process.env.DB_API_KEY
+  const DB_DATA_SOURCE = process.env.DB_DATA_SOURCE
+  const DB_DATABASE = process.env.DB_DATABASE
+  const DB_ALLOWED_DOMAINS_COLLECTION = process.env.DB_ALLOWED_DOMAINS_COLLECTION
+  const response = await axios.post(`${DB_API_URL}/action/find`, {
+    dataSource: DB_DATA_SOURCE,
+    database: DB_DATABASE,
+    collection: DB_ALLOWED_DOMAINS_COLLECTION,
+  },
+    {
+      headers: {
+        "api-key": DB_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    }
+  )
+  return response.data?.documents?.map((document: any) => document?.domain)
 }

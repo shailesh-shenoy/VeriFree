@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { emailAlreadyVerified, handleEmailFire, validEmailDomain } from "@/helpers/email-helper";
+import { addVerifiedEmail, emailAlreadyVerified, handleEmailFire, validEmailDomain } from "@/helpers/email-helper";
 import { IssueDetails, IssueRequest } from "@/types";
 import {
   createAuthLinkQRCode,
@@ -58,6 +58,7 @@ export default async function handler(
           expirationDate: claimLinkExpiration,
         };
         await handleEmailFire(issueDetails);
+        await addVerifiedEmail(studentEmail);
         return res
           .status(200)
           .json({ message: "Email sent to the provided email address" });

@@ -47,10 +47,10 @@ export default function Hero() {
                             as={NextLink}
                             href="/get-verified"
                             rounded={"full"}
-                            bg={"gray.800"}
+                            bg={"#7b3fe4"}
                             color={"white"}
                             _hover={{
-                                bg: "green.600",
+                                bg: "#512997",
                             }}
                         >
                             Get Verified
@@ -60,8 +60,8 @@ export default function Hero() {
                             href="/access-verifree-blockchain"
                             rounded={"full"}
                             variant="outline"
-                            colorScheme="gray.900"
-                            _hover={{ color: "green.600" }}
+                            colorScheme={"red"}
+
                         >
                             Access VeriFree  Blockchain
                         </Button>

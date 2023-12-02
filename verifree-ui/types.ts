@@ -52,3 +52,40 @@ export interface LinkDetail {
   schemaType: string;
   schemaUrl: string;
 }
+
+interface NavItem {
+  label: string;
+  link: string;
+}
+
+export const NAV_ITEMS: Array<NavItem> = [
+  {
+    label: "Get Verified",
+    link: "/get-verified",
+  },
+  {
+    label: "Publish Onchain Proof",
+    link: "/publish-onchain-proof",
+  },
+  {
+    label: "DAO",
+    link: process.env.NEXT_PUBLIC_VERIFREE_DAO_URL || "",
+  },
+];
+
+export const ABOUT_ITEMS: Array<NavItem> = [
+  {
+    label: "How it works",
+    link: "/how-it-works",
+  },
+  {
+    label: "Github",
+    link: "https://github.com/shailesh-shenoy/wagerwinz",
+  },
+  {
+    label: "VeriFree Subnet",
+    link: `/`,
+  },
+];
+
+export type { NavItem };
