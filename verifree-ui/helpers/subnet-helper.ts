@@ -9,7 +9,7 @@ export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema):
     const DB_ALLOW_LIST_COLLECTION = process.env.DB_ALLOW_LIST_COLLECTION
     const VERIFREE_SLEEP_TIME_MS = Number(process.env.VERIFREE_SLEEP_TIME_MS)
     // Sleep for random time between 0 and 10 seconds
-    const sleepTime = Math.floor(Math.random() * 5000);
+    const sleepTime = Math.floor(Math.random() * VERIFREE_SLEEP_TIME_MS);
     await new Promise((resolve) => setTimeout(resolve, sleepTime));
     const allowListInDB = await getAllowListFromAddress(allowListToUpdate.address)
     if (!allowListInDB) {
