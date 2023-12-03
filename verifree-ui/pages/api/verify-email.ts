@@ -14,6 +14,9 @@ export default async function handler(
   res: NextApiResponse
 ) {
   switch (req.method) {
+    case "OPTIONS":
+      res.status(200).end();
+      return;
     case "POST":
       const issueRequest: IssueRequest = req.body;
       const { studentEmail, address, addressLast15 } = issueRequest;
