@@ -1,5 +1,40 @@
 import { AllowListSchema } from "@/types"
 import axios from "axios"
+import { getValidDomains } from "./email-helper"
+
+export async function updateValidEmailDomainsInDB(validDomain: string): Promise<void> {
+    const DB_API_URL = process.env.DB_API_URL
+    const DB_API_KEY = process.env.DB_API_KEY
+    const DB_DATA_SOURCE = process.env.DB_DATA_SOURCE
+    const DB_DATABASE = process.env.DB_DATABASE
+    const DB_ALLOWED_DOMAINS_COLLECTION = process.env.DB_ALLOWED_DOMAINS_COLLECTION
+    const VERIFREE_SLEEP_TIME_MS = Number(process.env.VERIFREE_SLEEP_TIME_MS)
+    // Sleep for random time between 0 and 10 seconds
+    const sleepTime = Math.floor(Math.random() * VERIFREE_SLEEP_TIME_MS);
+    await new Promise((resolve) => setTimeout(resolve, sleepTime));
+    const validDomainsInDB = await getValidDomains()
+    if (!validDomainsInDB.includes(validDomain)) {
+        await axios.post(`${DB_API_URL}/action/insertOne`, {
+            dataSource: DB_DATA_SOURCE,
+            database: DB_DATABASE,
+            collection: DB_ALLOWED_DOMAINS_COLLECTION,
+            document: {
+                domain: validDomain
+            }
+        },
+            {
+                headers: {
+                    "api-key": DB_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+            }
+        )
+    }
+    else {
+        console.log("Valid domain already in DB")
+    }
+}
 
 export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema): Promise<void> {
     const DB_API_URL = process.env.DB_API_URL
@@ -123,3 +158,4 @@ function deepEqual(object1: any, object2: any) {
 function isObject(object: any) {
     return object != null && typeof object === 'object';
 }
+

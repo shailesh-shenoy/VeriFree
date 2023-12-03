@@ -1,9 +1,9 @@
 
-import { updateSubnetAllowList, validAllowList } from '@/helpers/subnet-helper';
+import { updateSubnetAllowList, updateValidEmailDomainsInDB, validAllowList } from '@/helpers/subnet-helper';
 import { AllowListSchema } from '@/types';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-const updateAllowlist = async (req: NextApiRequest, res: NextApiResponse) => {
+const updateValidDomains = async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method != 'POST') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
@@ -19,19 +19,19 @@ const updateAllowlist = async (req: NextApiRequest, res: NextApiResponse) => {
         if (apiKey !== ALLOWED_API_KEY) {
             return res.status(401).json({ message: 'Please send a valid API key' });
         }
-        // Example code to update the allowlist
-        const allowListToUpdate: AllowListSchema = req.body;
-        // Validate the allowListToUpdate object
-        if (!validAllowList(allowListToUpdate)) {
-            return res.status(400).json({ message: 'Bad Request: Invalid allowlist' });
+        const validDomain: string = req.body?.domain;
+
+        if (!validDomain) {
+            return res.status(400).json({ message: 'Bad Request: Invalid domain' });
         }
 
-        const updatedAllowlist = updateSubnetAllowList(allowListToUpdate);
 
-        res.status(200).json({ message: 'Allowlist updated requested.' });
+        const updatedValidDomains = updateValidEmailDomainsInDB(validDomain);
+
+        res.status(200).json({ message: 'Valid domains update requested.' });
     } catch (error: any) {
         res.status(500).json({ message: 'Failed to update allowlist: ', error: error.message });
     }
 };
 
-export default updateAllowlist;
+export default updateValidDomains;
