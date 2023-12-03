@@ -89,3 +89,20 @@ export const ABOUT_ITEMS: Array<NavItem> = [
 ];
 
 export type { NavItem };
+
+//VerFree Subnet Schema
+
+export interface AllowListSchema {
+  address: string;
+  contractAllowList: AllowList;
+  transactionAllowList: AllowList;
+}
+
+export interface ID {
+  $oid: string;
+}
+
+export interface AllowList {
+  enabled: boolean;
+  admin: boolean;
+}
