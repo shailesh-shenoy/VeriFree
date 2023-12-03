@@ -8,7 +8,6 @@ import {
   generateQRCode,
 } from "@/helpers/issuer-api-helper";
 import { fromHex } from "viem";
-import { check } from "prettier";
 
 export default async function handler(
   req: NextApiRequest,

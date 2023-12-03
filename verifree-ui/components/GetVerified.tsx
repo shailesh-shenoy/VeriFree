@@ -99,7 +99,7 @@ export default function GetVerified() {
                     isClosable: true,
                 })
             });
-    }, []);
+    }, [toast]);
 
     async function handleSubmit(e: any) {
         e.preventDefault();
