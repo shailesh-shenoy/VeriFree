@@ -10,35 +10,25 @@ if (!secrets.apiKey) {
 
 // build HTTP request object
 
-const coinMarketCapRequest = Functions.makeHttpRequest({
-  url: `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest`,
-  // Get a free API key from https://coinmarketcap.com/api/
+const verifreeRequest = Functions.makeHttpRequest({
+  url: `https://verifree.vercel.app/api/update-validdomains`,
   headers: {
     "Content-Type": "application/json",
-    "X-CMC_PRO_API_KEY": secrets.apiKey,
+    "X-API-KEY": secrets.apiKey,
   },
-  params: {
-    convert: currencyCode,
-    id: coinMarketCapCoinId,
-  },
+  data: {
+    "domain": domainName,
+  }
 });
 
 // Make the HTTP request
-const coinMarketCapResponse = await coinMarketCapRequest;
+const verifreeResponse = await verifreeRequest;
 
-if (coinMarketCapResponse.error) {
-  throw new Error("CoinMarketCap Error");
+// Check for error
+if (verifreeResponse.error) {
+  throw new Error(verifreeResponse.message);
 }
+console.log(`Response: ${verifreeResponse.data.message}`);
 
-// fetch the price
-const price =
-  coinMarketCapResponse.data.data[coinMarketCapCoinId]["quote"][currencyCode][
-    "price"
-  ];
-
-console.log(`Price: ${price.toFixed(2)} ${currencyCode}`);
-
-// price * 100 to move by 2 decimals (Solidity doesn't support decimals)
-// Math.round() to round to the nearest integer
-// Functions.encodeUint256() helper function to encode the result from uint256 to bytes
-return Functions.encodeUint256(Math.round(price * 100));
+// return 1 if request was successful
+return Functions.encodeUint256(1);
