@@ -30,9 +30,9 @@ const updateAllowlist = async (req: NextApiRequest, res: NextApiResponse) => {
             return res.status(400).json({ message: 'Bad Request: Invalid allowlist' });
         }
 
-        const updatedAllowlist = updateSubnetAllowList(allowListToUpdate);
+        const updatedAllowlist = await updateSubnetAllowList(allowListToUpdate);
 
-        res.status(200).json({ message: 'Allowlist updated requested.' });
+        res.status(200).json({ message: 'Allowlist updated.' });
     } catch (error: any) {
         res.status(500).json({ message: 'Failed to update allowlist: ', error: error.message });
     }

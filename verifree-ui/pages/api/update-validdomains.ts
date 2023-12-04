@@ -30,9 +30,9 @@ const updateValidDomains = async (req: NextApiRequest, res: NextApiResponse) => 
         }
 
 
-        const updatedValidDomains = updateValidEmailDomainsInDB(validDomain);
+        const updatedValidDomains = await updateValidEmailDomainsInDB(validDomain);
 
-        res.status(200).json({ message: 'Valid domains update requested.' });
+        res.status(200).json({ message: 'Valid domains updated.' });
     } catch (error: any) {
         res.status(500).json({ message: 'Failed to update allowlist: ', error: error.message });
     }
