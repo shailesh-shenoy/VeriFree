@@ -47,6 +47,8 @@ export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema):
     const sleepTime = Math.floor(Math.random() * VERIFREE_SLEEP_TIME_MS);
     await new Promise((resolve) => setTimeout(resolve, sleepTime));
     const allowListInDB = await getAllowListFromAddress(allowListToUpdate.address)
+    console.log("allowListInDB", allowListInDB)
+    console.log("allowListToUpdate", allowListToUpdate)
     if (!allowListInDB) {
         await axios.post(`${DB_API_URL}/action/insertOne`, {
             dataSource: DB_DATA_SOURCE,
