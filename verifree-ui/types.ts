@@ -94,15 +94,8 @@ export type { NavItem };
 
 export interface AllowListSchema {
   address: string;
-  contractAllowList: AllowList;
-  transactionAllowList: AllowList;
-}
-
-export interface ID {
-  $oid: string;
-}
-
-export interface AllowList {
-  enabled: boolean;
-  admin: boolean;
+  transactionsAllowed: boolean;
+  transactionsAdmin: boolean;
+  contractsAllowed: boolean;
+  contractsAdmin: boolean;
 }

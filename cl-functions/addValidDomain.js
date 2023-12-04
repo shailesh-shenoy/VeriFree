@@ -12,13 +12,15 @@ if (!secrets.apiKey) {
 
 const verifreeRequest = Functions.makeHttpRequest({
   url: `https://verifree.vercel.app/api/update-validdomains`,
+  method: "POST",
   headers: {
     "Content-Type": "application/json",
     "X-API-KEY": secrets.apiKey,
   },
   data: {
     "domain": domainName,
-  }
+  },
+  timeout: 5000
 });
 
 // Make the HTTP request
@@ -26,7 +28,7 @@ const verifreeResponse = await verifreeRequest;
 
 // Check for error
 if (verifreeResponse.error) {
-  throw new Error(verifreeResponse.message);
+  throw new Error(`Error while adding ${domainName} to allowed domains via API: ${verifreeResponse.message}`);
 }
 console.log(`Response: ${verifreeResponse.data.message}`);
 

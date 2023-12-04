@@ -62,7 +62,7 @@ export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema):
                 },
             }
         )
-    } else if (!deepEqual(allowListInDB.contractAllowList, allowListToUpdate.contractAllowList) || !deepEqual(allowListInDB.transactionAllowList, allowListToUpdate.transactionAllowList)) {
+    } else if (!equalAllowLists(allowListInDB, allowListToUpdate)) {
         await axios.post(`${DB_API_URL}/action/updateOne`, {
             dataSource: DB_DATA_SOURCE,
             database: DB_DATABASE,
@@ -72,8 +72,10 @@ export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema):
             },
             update: {
                 $set: {
-                    contractAllowList: allowListToUpdate.contractAllowList,
-                    transactionAllowList: allowListToUpdate.transactionAllowList
+                    transactionsAllowed: allowListToUpdate.transactionsAllowed,
+                    transactionsAdmin: allowListToUpdate.transactionsAdmin,
+                    contractsAllowed: allowListToUpdate.contractsAllowed,
+                    contractsAdmin: allowListToUpdate.contractsAdmin
                 }
             }
         },
@@ -120,39 +122,29 @@ export function validAllowList(allowList: AllowListSchema): boolean {
     if (!allowList?.address) {
         return false
     }
-    if (!allowList.contractAllowList || !allowList.transactionAllowList) {
+    if (!allowList.hasOwnProperty("transactionsAllowed")) {
         return false
     }
-    if (!allowList.contractAllowList.hasOwnProperty("enabled") || !allowList.contractAllowList.hasOwnProperty("admin")) {
+    if (!allowList.hasOwnProperty("transactionsAdmin")) {
         return false
     }
-    if (!allowList.transactionAllowList.hasOwnProperty("enabled") || !allowList.transactionAllowList.hasOwnProperty("admin")) {
+    if (!allowList.hasOwnProperty("contractsAllowed")) {
+        return false
+    }
+    if (!allowList.hasOwnProperty("contractsAdmin")) {
         return false
     }
     return true
 }
 
-function deepEqual(object1: any, object2: any) {
-    const keys1 = Object.keys(object1);
-    const keys2 = Object.keys(object2);
-
-    if (keys1.length !== keys2.length) {
-        return false;
-    }
-
-    for (const key of keys1) {
-        const val1 = object1[key];
-        const val2 = object2[key];
-        const areObjects = isObject(val1) && isObject(val2);
-        if (
-            areObjects && !deepEqual(val1, val2) ||
-            !areObjects && val1 !== val2
-        ) {
-            return false;
-        }
-    }
-
-    return true;
+function equalAllowLists(allowListInDB: AllowListSchema, allowListToUpdate: AllowListSchema) {
+    return (
+        allowListInDB.address === allowListToUpdate.address &&
+        allowListInDB.transactionsAllowed === allowListToUpdate.transactionsAllowed &&
+        allowListInDB.transactionsAdmin === allowListToUpdate.transactionsAdmin &&
+        allowListInDB.contractsAllowed === allowListToUpdate.contractsAllowed &&
+        allowListInDB.contractsAdmin === allowListToUpdate.contractsAdmin
+    )
 }
 
 function isObject(object: any) {
