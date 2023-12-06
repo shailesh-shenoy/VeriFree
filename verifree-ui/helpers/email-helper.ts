@@ -112,5 +112,7 @@ export async function getValidDomains(): Promise<string[]> {
       },
     }
   )
-  return response.data?.documents?.map((document: any) => document?.domain)
+  const domainSet = new Set<string>()
+  response.data?.documents?.forEach((document: any) => domainSet.add(document?.domain))
+  return Array.from(domainSet)
 }

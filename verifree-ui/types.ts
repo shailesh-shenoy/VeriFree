@@ -94,8 +94,9 @@ export type { NavItem };
 
 export interface AllowListSchema {
   address: string;
-  transactionsAllowed: boolean;
-  transactionsAdmin: boolean;
-  contractsAllowed: boolean;
-  contractsAdmin: boolean;
+  transactionsAllowed: string;
+  transactionsAdmin: string;
+  contractsAllowed: string;
+  contractsAdmin: string;
+  mintSubnetVSBT: string;
 }

@@ -46,6 +46,14 @@ export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema):
     // Sleep for random time between 0 and X seconds
     const sleepTime = Math.floor(Math.random() * VERIFREE_SLEEP_TIME_MS);
     await new Promise((resolve) => setTimeout(resolve, sleepTime));
+    // Convert address to lowercase
+    allowListToUpdate.address = allowListToUpdate.address.toLowerCase()
+
+    // Append 0x to the address if it is not there
+
+    if (!allowListToUpdate.address.startsWith("0x")) {
+        allowListToUpdate.address = "0x" + allowListToUpdate.address
+    }
     const allowListInDB = await getAllowListFromAddress(allowListToUpdate.address)
 
     if (!allowListInDB) {
@@ -76,7 +84,8 @@ export async function updateSubnetAllowList(allowListToUpdate: AllowListSchema):
                     transactionsAllowed: allowListToUpdate.transactionsAllowed,
                     transactionsAdmin: allowListToUpdate.transactionsAdmin,
                     contractsAllowed: allowListToUpdate.contractsAllowed,
-                    contractsAdmin: allowListToUpdate.contractsAdmin
+                    contractsAdmin: allowListToUpdate.contractsAdmin,
+                    mintSubnetVSBT: allowListToUpdate.mintSubnetVSBT
                 }
             }
         },
@@ -135,6 +144,9 @@ export function validAllowList(allowList: AllowListSchema): boolean {
     if (!allowList.hasOwnProperty("contractsAdmin")) {
         return false
     }
+    if (!allowList.hasOwnProperty("mintSubnetVSBT")) {
+        return false
+    }
     return true
 }
 
@@ -144,11 +156,8 @@ function equalAllowLists(allowListInDB: AllowListSchema, allowListToUpdate: Allo
         allowListInDB.transactionsAllowed === allowListToUpdate.transactionsAllowed &&
         allowListInDB.transactionsAdmin === allowListToUpdate.transactionsAdmin &&
         allowListInDB.contractsAllowed === allowListToUpdate.contractsAllowed &&
-        allowListInDB.contractsAdmin === allowListToUpdate.contractsAdmin
+        allowListInDB.contractsAdmin === allowListToUpdate.contractsAdmin &&
+        allowListInDB.mintSubnetVSBT === allowListToUpdate.mintSubnetVSBT
     )
-}
-
-function isObject(object: any) {
-    return object != null && typeof object === 'object';
 }
 
