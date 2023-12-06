@@ -44,6 +44,16 @@ export const getPrivateKey = () => {
     return privateKey;
 };
 
+export const getEncryptedGistURL = () => {
+    const encryptedGistURL = process.env.ENCRYPTED_GIST_URL;
+
+    if (!encryptedGistURL)
+        throw new Error(
+            "encryptedGistURL not provided - check your environment variables"
+        );
+
+    return encryptedGistURL;
+};
 
 export const getRouterConfig = (network: string) => {
     switch (network) {

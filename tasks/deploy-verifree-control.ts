@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
-import { getPrivateKey, getProviderRpcUrl, getRouterConfig } from "./utils";
+import { getEncryptedGistURL, getPrivateKey, getProviderRpcUrl, getRouterConfig } from "./utils";
 import { ethers } from "ethers";
 import { DestinationVSBTMinter, VeriFreeControl } from "../typechain-types";
 import { Spinner } from "../utils/spinner";
@@ -15,6 +15,7 @@ task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses
 
         const privateKey = getPrivateKey();
         const rpcProviderUrl = getProviderRpcUrl(hre.network.name);
+        const encryptedGistURL = getEncryptedGistURL();
 
         const provider = new ethers.JsonRpcProvider(rpcProviderUrl);
         const wallet = new ethers.Wallet(privateKey);
@@ -25,7 +26,6 @@ task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses
         // CL functions parameters
         const router = "0xA9d587a00A31A52Ed70D6026794a8FC5E2F5dCb0"
         // const donHostedSecretsSlotID = 0;
-        const encryptedSecretsReference = "0xa266736c6f744964006776657273696f6e1a656f89a6" // Will expire, set to a new one frequently
         const subscriptionId = 1618;
         const donId = "fun-avalanche-fuji-1";
         const donIdBytes32 = ethers.encodeBytes32String(donId);
@@ -46,7 +46,7 @@ task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses
 
         const veriFreeControl: VeriFreeControl = await hre.ethers.deployContract("VeriFreeControl", [
             router,
-            encryptedSecretsReference,
+            encryptedGistURL,
             subscriptionId,
             donIdBytes32,
             gasLimit,
@@ -55,8 +55,8 @@ task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses
         ]);
 
         await veriFreeControl.waitForDeployment();
-        const encryptedRefOnChain = await veriFreeControl.encryptedSecretsReference();
-
         console.log(`✅ VeriFreeControl contract deployed at address ${veriFreeControl.target} on the ${hre.network.name} blockchain`);
-
+        const encryptedRefOnChain = await veriFreeControl.encryptedSecretsURL();
+        console.log(`ℹ️  Encrypted secrets URL in contract: ${encryptedRefOnChain}`);
+        spinner.stop();
     })

@@ -4,7 +4,7 @@ const transactionsAllowed = args[1];
 const transactionsAdmin = args[2];
 const contractsAllowed = args[3];
 const contractsAdmin = args[4];
-
+const mintSubnetVSBT = args[5];
 
 // Get the API key from secrets
 if (!secrets.apiKey) {
@@ -28,6 +28,7 @@ const verifreeRequest = Functions.makeHttpRequest({
     transactionsAdmin: transactionsAdmin,
     contractsAllowed: contractsAllowed,
     contractsAdmin: contractsAdmin,
+    mintSubnetVSBT: mintSubnetVSBT
   },
   timeout: 5000
 });

@@ -18,8 +18,8 @@ task("test-add-domain", "Initialize VeriFree control contract and test adding a 
 
         spinner.start();
 
-        const domainToAdd = "uta.edu";
-        const veriFreeControl = await hre.ethers.getContractAt("VeriFreeControl", "0x6c5E97869C703E9DBbd605D1728937C99Bee2f4a");
+        const domainToAdd = "utd.edu";
+        const veriFreeControl = await hre.ethers.getContractAt("VeriFreeControl", "0x7dBE168BBd6E29750134226d97BFcbc01748A733");
 
         console.log(`ℹ️  Attempting to add domain ${domainToAdd} to VeriFreeControl contract ${veriFreeControl.target} on the ${hre.network.name} blockchain`);
         const requestTx = await veriFreeControl.addValidDomains(domainToAdd);
@@ -29,8 +29,6 @@ task("test-add-domain", "Initialize VeriFree control contract and test adding a 
         console.log(`ℹ Transaction hash: ${requestTx.hash}`);
         // Test adding a domain
         const txReceipt = await requestTx.wait(1);
-
-        console.log(JSON.stringify(txReceipt));
 
     });
 

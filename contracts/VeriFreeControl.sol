@@ -11,7 +11,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     // State variables required for Chainlink functions
     uint64 public subscriptionId;
     bytes32 public donID;
-    bytes public encryptedSecretsReference; // Needs to be updated as the secrets expire
+    bytes public encryptedSecretsURL; // Off-chain reference to the encrypted secrets
     uint32 public gasLimit;
     string public validDomainsSourceJS;
     string public allowListSourceJS;
@@ -38,6 +38,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         bool transactionsAdmin;
         bool contractsAllowed;
         bool contractsAdmin;
+        bool mintSubnetVSBT;
     }
 
     // Events
@@ -48,11 +49,12 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
 
     event updateSubnetAllowListFunctionInvoked(
         bytes32 indexed _requestId,
-        address _addressToUpdate,
+        address indexed _addressToUpdate,
         bool _transactionsAllowed,
         bool _transactionsAdmin,
         bool _contractsAllowed,
-        bool _contractsAdmin
+        bool _contractsAdmin,
+        bool _mintSubnetVSBT
     );
 
     event ResponseReceived(
@@ -67,7 +69,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     /**
      * @notice Deploy the VeriFreeControl contract
      * @param _router The address of the Chainlink router
-     * @param _encryptedSecretsReference The encrypted secrets reference for the Chainlink functions
+     * @param _encryptedSecretsURL The encrypted secrets reference for the Chainlink functions
      * @param _subscriptionId The subscription ID of the Chainlink functions subscription
      * @param _donID The DON ID of the DON processing the Chainlink functions
      * @param _gasLimit The gas limit for the callback fulfill function
@@ -76,7 +78,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
      */
     constructor(
         address _router,
-        bytes memory _encryptedSecretsReference,
+        bytes memory _encryptedSecretsURL,
         uint64 _subscriptionId,
         bytes32 _donID,
         uint32 _gasLimit,
@@ -85,7 +87,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     ) FunctionsClient(_router) ConfirmedOwner(msg.sender) {
         // Update with initial values to call chainlink functions
         // Can be updated later with the setters by thee allow listed addresses
-        encryptedSecretsReference = _encryptedSecretsReference;
+        encryptedSecretsURL = _encryptedSecretsURL;
         subscriptionId = _subscriptionId;
         donID = _donID;
         gasLimit = _gasLimit;
@@ -111,8 +113,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         args[0] = _domain;
 
         req.initializeRequestForInlineJavaScript(validDomainsSourceJS);
-        req.secretsLocation = FunctionsRequest.Location.DONHosted;
-        req.encryptedSecretsReference = encryptedSecretsReference;
+        req.addSecretsReference(encryptedSecretsURL);
 
         req.setArgs(args);
         bytes32 _requestId = _sendRequest(
@@ -142,26 +143,28 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         bool _transactionsAllowed,
         bool _transactionsAdmin,
         bool _contractsAllowed,
-        bool _contractsAdmin
+        bool _contractsAdmin,
+        bool _mintSubnetVSBT
     ) external onlyAllowListedAdmins returns (bytes32) {
         // Create the Chainlink request
         FunctionsRequest.Request memory req;
-        // 5 arguments sent to the Chainlink function:
+        // 6 arguments sent to the Chainlink function:
         // _addressToUpdate: The address to update in the subnet allow list
         // _transactionsAllowed: Whether transactions are allowed for the address
         // _transactionsAdmin: Whether the address has admin access to transactions allow list
         // _contractsAllowed: Whether contract deployments are allowed for the address
         // _contractsAdmin: Whether the address has admin access to contracts allow list
-        string[] memory args = new string[](5);
+        // _mintSubnetVSBT: Whether the address has admin access to mint VSBT
+        string[] memory args = new string[](6);
         args[0] = addressToString(_addressToUpdate);
         args[1] = boolToString(_transactionsAllowed);
         args[2] = boolToString(_transactionsAdmin);
         args[3] = boolToString(_contractsAllowed);
         args[4] = boolToString(_contractsAdmin);
+        args[5] = boolToString(_mintSubnetVSBT);
 
         req.initializeRequestForInlineJavaScript(allowListSourceJS);
-        req.secretsLocation = FunctionsRequest.Location.DONHosted;
-        req.encryptedSecretsReference = encryptedSecretsReference;
+        req.addSecretsReference(encryptedSecretsURL);
         req.setArgs(args);
         bytes32 _requestId = _sendRequest(
             req.encodeCBOR(),
@@ -176,14 +179,16 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
             _transactionsAllowed,
             _transactionsAdmin,
             _contractsAllowed,
-            _contractsAdmin
+            _contractsAdmin,
+            _mintSubnetVSBT
         );
 
         subnetAllowList[_addressToUpdate] = SubnetAccess(
             _transactionsAllowed,
             _transactionsAdmin,
             _contractsAllowed,
-            _contractsAdmin
+            _contractsAdmin,
+            _mintSubnetVSBT
         );
 
         return _requestId;
@@ -245,11 +250,11 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         allowListSourceJS = _allowListSourceJS;
     }
 
-    // This update will be required as the secrets expire
-    function updateEncryptedSecretsReference(
-        bytes memory _encryptedSecretsReference
+    // This is the encrypted secrets reference for the Chainlink functions, stored off-chain
+    function updateEncryptedSecretsURL(
+        bytes memory _encryptedSecretsURL
     ) external onlyAllowListedAdmins {
-        encryptedSecretsReference = _encryptedSecretsReference;
+        encryptedSecretsURL = _encryptedSecretsURL;
     }
 
     // Helper functions - Coversions
