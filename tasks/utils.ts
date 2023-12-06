@@ -19,6 +19,8 @@ export const getProviderRpcUrl = (network: string) => {
         case "polygonMumbai":
             rpcUrl = process.env.POLYGON_MUMBAI_RPC_URL;
             break;
+        case "hardhat":
+            break;
         default:
             throw new Error("Unknown network: " + network);
     }

@@ -4,7 +4,7 @@ import { getPrivateKey, getProviderRpcUrl } from "./utils";
 import { Wallet, ethers } from "ethers";
 import { Spinner } from "../utils/spinner";
 
-task('allow', 'Gets the balance of MyNFTs for provided address')
+task('allow', 'Updates the allowed source address on the DestinationMinter contract')
     .setAction(async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
         const privateKey = getPrivateKey();
         const rpcProviderUrl = getProviderRpcUrl(hre.network.name);

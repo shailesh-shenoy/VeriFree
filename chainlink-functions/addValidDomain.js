@@ -20,7 +20,7 @@ const verifreeRequest = Functions.makeHttpRequest({
   data: {
     "domain": domainName,
   },
-  timeout: 5000
+  timeout: 8000
 });
 
 // Make the HTTP request

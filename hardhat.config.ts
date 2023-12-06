@@ -25,11 +25,24 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: "0.8.19",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   networks: {
     hardhat: {
-      chainId: 31337
+      chainId: 43113,
+      forking: {
+        url: AVALANCHE_FUJI_RPC_URL ?? '',
+        blockNumber: 8276999,
+      }
     },
     ethereumSepolia: {
       url: ETHEREUM_SEPOLIA_RPC_URL !== undefined ? ETHEREUM_SEPOLIA_RPC_URL : '',

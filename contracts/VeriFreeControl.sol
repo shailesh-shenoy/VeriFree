@@ -9,10 +9,9 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
 
     // State variables required for Chainlink functions
-    uint8 public donHostedSecretsSlotID;
-    uint64 public donHostedSecretsVersion;
     uint64 public subscriptionId;
     bytes32 public donID;
+    bytes public encryptedSecretsReference; // Needs to be updated as the secrets expire
     uint32 public gasLimit;
     string public validDomainsSourceJS;
     string public allowListSourceJS;
@@ -23,6 +22,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     mapping(address => bool) public allowListedAdmins;
 
     // Modifiers
+    // Only allow listed addresses can call the functions marked with this modifier
     modifier onlyAllowListedAdmins() {
         if (!allowListedAdmins[msg.sender]) {
             revert AddressNotAuthorized(msg.sender);
@@ -31,6 +31,8 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     }
 
     // Struct for storing subnet access
+    // This data will be synced off-chain to the VeriFree subnet
+    // Future implementations will use the AWM standard for cross-chain communication
     struct SubnetAccess {
         bool transactionsAllowed;
         bool transactionsAdmin;
@@ -53,25 +55,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         bool _contractsAdmin
     );
 
-    event ErrorResponseReceived(
-        bytes32 indexed _requestId,
-        bytes _response,
-        bytes _err
-    );
-
-    event validDomainsUpdated(
-        bytes32 indexed _requestId,
-        bytes _response,
-        bytes _err
-    );
-
-    event allowListUpdated(
-        bytes32 indexed _requestId,
-        bytes _response,
-        bytes _err
-    );
-
-    event UnknownResponseReceived(
+    event ResponseReceived(
         bytes32 indexed _requestId,
         bytes _response,
         bytes _err
@@ -83,8 +67,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     /**
      * @notice Deploy the VeriFreeControl contract
      * @param _router The address of the Chainlink router
-     * @param _donHostedSecretsSlotID The slot ID of the DON hosted secrets
-     * @param _donHostedSecretsVersion The version of the DON hosted secrets
+     * @param _encryptedSecretsReference The encrypted secrets reference for the Chainlink functions
      * @param _subscriptionId The subscription ID of the Chainlink functions subscription
      * @param _donID The DON ID of the DON processing the Chainlink functions
      * @param _gasLimit The gas limit for the callback fulfill function
@@ -93,16 +76,16 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
      */
     constructor(
         address _router,
-        uint8 _donHostedSecretsSlotID,
-        uint64 _donHostedSecretsVersion,
+        bytes memory _encryptedSecretsReference,
         uint64 _subscriptionId,
         bytes32 _donID,
         uint32 _gasLimit,
-        string _validDomainsSourceJS,
-        string _allowListSourceJS
-    ) FunctionsClient(router) ConfirmedOwner(msg.sender) {
-        donHostedSecretsSlotID = _donHostedSecretsSlotID;
-        donHostedSecretsVersion = _donHostedSecretsVersion;
+        string memory _validDomainsSourceJS,
+        string memory _allowListSourceJS
+    ) FunctionsClient(_router) ConfirmedOwner(msg.sender) {
+        // Update with initial values to call chainlink functions
+        // Can be updated later with the setters by thee allow listed addresses
+        encryptedSecretsReference = _encryptedSecretsReference;
         subscriptionId = _subscriptionId;
         donID = _donID;
         gasLimit = _gasLimit;
@@ -120,7 +103,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
      */
     function addValidDomains(
         string memory _domain
-    ) external onlyAllowListedAdmins returns (bytes32 requestId) {
+    ) external onlyAllowListedAdmins returns (bytes32) {
         // Create the Chainlink request
         FunctionsRequest.Request memory req;
         // 1 argument sent to the Chainlink function: _domain to add to the valid domains list
@@ -128,10 +111,9 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         args[0] = _domain;
 
         req.initializeRequestForInlineJavaScript(validDomainsSourceJS);
-        req.addDONHostedSecrets(
-            donHostedSecretsSlotID,
-            donHostedSecretsVersion
-        );
+        req.secretsLocation = FunctionsRequest.Location.DONHosted;
+        req.encryptedSecretsReference = encryptedSecretsReference;
+
         req.setArgs(args);
         bytes32 _requestId = _sendRequest(
             req.encodeCBOR(),
@@ -161,7 +143,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         bool _transactionsAdmin,
         bool _contractsAllowed,
         bool _contractsAdmin
-    ) external onlyAllowListedAdmins returns (bytes32 requestId) {
+    ) external onlyAllowListedAdmins returns (bytes32) {
         // Create the Chainlink request
         FunctionsRequest.Request memory req;
         // 5 arguments sent to the Chainlink function:
@@ -171,17 +153,15 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         // _contractsAllowed: Whether contract deployments are allowed for the address
         // _contractsAdmin: Whether the address has admin access to contracts allow list
         string[] memory args = new string[](5);
-        args[0] = _addressToUpdate;
-        args[1] = _transactionsAllowed;
-        args[2] = _transactionsAdmin;
-        args[3] = _contractsAllowed;
-        args[4] = _contractsAdmin;
+        args[0] = addressToString(_addressToUpdate);
+        args[1] = boolToString(_transactionsAllowed);
+        args[2] = boolToString(_transactionsAdmin);
+        args[3] = boolToString(_contractsAllowed);
+        args[4] = boolToString(_contractsAdmin);
 
         req.initializeRequestForInlineJavaScript(allowListSourceJS);
-        req.addDONHostedSecrets(
-            donHostedSecretsSlotID,
-            donHostedSecretsVersion
-        );
+        req.secretsLocation = FunctionsRequest.Location.DONHosted;
+        req.encryptedSecretsReference = encryptedSecretsReference;
         req.setArgs(args);
         bytes32 _requestId = _sendRequest(
             req.encodeCBOR(),
@@ -203,14 +183,15 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
             _transactionsAllowed,
             _transactionsAdmin,
             _contractsAllowed,
-            _contractsAdmin,
-            false
+            _contractsAdmin
         );
+
         return _requestId;
     }
 
     /**
      * @dev Callback function for Chainlink functions
+     * Emits a ResponseReceived event with the requestId, response and error
      * @param requestId The request ID of the Chainlink function invocation
      * @param response The response of the Chainlink function invocation
      * @param err The error returned by the Chainlink function invocation
@@ -220,19 +201,7 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         bytes memory response,
         bytes memory err
     ) internal override {
-        if (err.length > 0) {
-            emit ErrorResponseReceived(requestId, response, err);
-        }
-        if (uint256(response) == 1) {
-            // Response 1 means the request type is validDomains
-            emit validDomainsUpdated(requestId, response, err);
-        } else if (uint256(response) == 2) {
-            // Response 2 means the request type is updateSubnetAllowList
-
-            emit allowListUpdated(requestId, response, err);
-        } else {
-            emit UnknownResponseReceived(requestId, response, err);
-        }
+        emit ResponseReceived(requestId, response, err);
     }
 
     /**
@@ -244,22 +213,11 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     function updateAllowListedAdmins(
         address _admin,
         bool _allowListed
-    ) external onlyAllowListedAdmins returns (bytes32 requestId) {
+    ) external onlyAllowListedAdmins {
         allowListedAdmins[_admin] = _allowListed;
     }
 
-    // Setter functions for updating state variables
-    function updateDonHostedSecretsSlotID(
-        uint8 _donHostedSecretsSlotID
-    ) external onlyAllowListedAdmins {
-        donHostedSecretsSlotID = _donHostedSecretsSlotID;
-    }
-
-    function updateDonHostedSecretsVersion(
-        uint64 _donHostedSecretsVersion
-    ) external onlyAllowListedAdmins {
-        donHostedSecretsVersion = _donHostedSecretsVersion;
-    }
+    // Setters for updating state variables
 
     function updateSubscriptionId(
         uint64 _subscriptionId
@@ -285,5 +243,44 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         string memory _allowListSourceJS
     ) external onlyAllowListedAdmins {
         allowListSourceJS = _allowListSourceJS;
+    }
+
+    // This update will be required as the secrets expire
+    function updateEncryptedSecretsReference(
+        bytes memory _encryptedSecretsReference
+    ) external onlyAllowListedAdmins {
+        encryptedSecretsReference = _encryptedSecretsReference;
+    }
+
+    // Helper functions - Coversions
+    function boolToString(bool _bool) private pure returns (string memory) {
+        if (_bool) {
+            return "true";
+        } else {
+            return "false";
+        }
+    }
+
+    /**
+     * @dev Convert an address to a string
+     * converted address is lowercase and does not have the 0x prefix
+     * @param x The address to convert to a string
+     * @return s The string representation of the address
+     */
+    function addressToString(address x) private pure returns (string memory) {
+        bytes memory s = new bytes(40);
+        for (uint i = 0; i < 20; i++) {
+            bytes1 b = bytes1(uint8(uint(uint160(x)) / (2 ** (8 * (19 - i)))));
+            bytes1 hi = bytes1(uint8(b) / 16);
+            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
+            s[2 * i] = char(hi);
+            s[2 * i + 1] = char(lo);
+        }
+        return string(s);
+    }
+
+    function char(bytes1 b) internal pure returns (bytes1 c) {
+        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+        else return bytes1(uint8(b) + 0x57);
     }
 }
