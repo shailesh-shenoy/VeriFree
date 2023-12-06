@@ -51,54 +51,6 @@ const Home: NextPage = () => {
   return (
     <GetVerified />
   )
-  // return (
-  //   <Box as="main" minH="100vh" bg="gray.100" pb="8">
-  //     <ConnectButton />
-
-  //     <Heading as="h1">
-  //       Get a Verified Student Credential in your PolygonID Wallet
-  //     </Heading>
-
-  //     <Stack as="section">
-  //       {isConnected && isClient ? (
-  //         <div>
-  //           <Text>Connected to account: {address}</Text>
-  //           <Text>
-  //             Address will be presented as a 15 digit number in your Student
-  //             Verified Credential : {addressLast15.toString()}
-  //           </Text>
-  //         </div>
-  //       ) : (
-  //         <Text>
-  //           Use the connect button to verify your account address. Your
-  //           account address is required to generate your Student Credential.
-  //         </Text>
-  //       )}
-  //     </Stack>
-
-  //     <form onSubmit={handleSubmit}>
-  //       <div>
-  //         <label>
-  //           Student Email Address:
-  //           <input
-  //             type="email"
-  //             placeholder="Enter your student email address."
-  //             value={studentEmail}
-  //             onChange={(e) => setStudentEmail(e.target.value)}
-  //           />
-  //         </label>
-  //       </div>
-  //       <button
-  //         type="submit"
-  //         disabled={
-  //           addressLast15 === 0 || studentEmail.length === 0 || !isClient
-  //         }
-  //       >
-  //         Generate Student Credential
-  //       </button>
-  //     </form>
-  //   </Box>
-  // );
 };
 
 export default Home;

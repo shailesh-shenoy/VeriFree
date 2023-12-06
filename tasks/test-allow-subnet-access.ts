@@ -18,9 +18,9 @@ task("test-allow-subnet-access", "Allow access to given address on subnet")
 
         spinner.start();
 
-        const addressToUpdate = "0x71A46b753d085C0B1F82CB67C0a2Dc2E480fF0BF"
+        const addressToUpdate = "0x2dEE2342b526546E6aE2C61b05D2FBb3464dE50d"
         const transactionsAllowed = true;
-        const transactionsAdmin = true;
+        const transactionsAdmin = false;
         const contractsAllowed = true;
         const contractsAdmin = false;
         const mintSubnetVSBT = true;
