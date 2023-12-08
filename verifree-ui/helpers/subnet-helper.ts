@@ -260,7 +260,7 @@ export async function updateAllowListInSubnet(message: string) {
 
         // Store the transaction hash in the DB with the message
         // No need to wait for this to finish
-        axios.post(`${DB_API_URL}/action/updateOne`, {
+        await axios.post(`${DB_API_URL}/action/updateOne`, {
             dataSource: DB_DATA_SOURCE,
             database: DB_DATABASE,
             collection: DB_ALLOWLIST_MESSAGES_COLLECTION,
