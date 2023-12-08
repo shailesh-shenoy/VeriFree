@@ -53,10 +53,25 @@ contract VeriFreeSubnetControl is ITeleporterReceiver, Ownable {
         _;
     }
 
-    event TeleporterMessengerUpdated(address newTeleporterMessenger);
-    event AllowedOriginChainUpdated(bytes32 originChainID, bool allow);
-    event AllowedSenderUpdated(address sender, bool allow);
-    event NativeCoinAmountUpdated(uint256 nativeCoinAmount);
+    event TeleporterMessengerUpdated(address indexed _newTeleporterMessenger);
+    event AllowedOriginChainUpdated(bytes32 indexed _originChainID, bool allow);
+    event AllowedSenderUpdated(address indexed _sender, bool allow);
+    event NativeCoinAmountUpdated(uint256 _nativeCoinAmount);
+    event TeleporterMessageReceived(
+        bytes32 indexed _originChainID,
+        address indexed _originSenderAddress,
+        bytes message
+    );
+    event TxAllowListUpdated(
+        address indexed _updatedAddress,
+        uint256 indexed _updatedRole
+    );
+    event ContractAllowListUpdated(
+        address indexed _updatedAddress,
+        uint256 indexed _updatedRole
+    );
+    event NativeCoinMinted(address indexed _to, uint256 _amount);
+    event VSBTMinted(address indexed _to, uint256 _tokenId);
 
     constructor(
         address _txAllowListPrecompileAddress,
@@ -107,44 +122,58 @@ contract VeriFreeSubnetControl is ITeleporterReceiver, Ownable {
         onlyAllowedSender(originSenderAddress)
     {
         AccessInfo memory accessInfo = abi.decode(message, (AccessInfo));
-
+        address _addressToUpdate = accessInfo.addressToUpdate;
         // Update the transaction allow list
         // If the address is allowed as admin, do setAdmin
         // If the address is allowed as non-admin, do setEnabled
         // If the address is neither, do setNone
         if (accessInfo.transactionsAdmin) {
-            txAllowListPrecompile.setAdmin(accessInfo.addressToUpdate);
+            txAllowListPrecompile.setAdmin(_addressToUpdate);
         } else if (accessInfo.transactionsAllowed) {
-            txAllowListPrecompile.setEnabled(accessInfo.addressToUpdate);
+            txAllowListPrecompile.setEnabled(_addressToUpdate);
         } else {
-            txAllowListPrecompile.setNone(accessInfo.addressToUpdate);
+            txAllowListPrecompile.setNone(_addressToUpdate);
         }
+        uint256 _updatedRole = txAllowListPrecompile.readAllowList(
+            _addressToUpdate
+        );
+        emit TxAllowListUpdated(_addressToUpdate, _updatedRole);
 
         // Update the contract allow list
         // If the address is allowed as admin, do setAdmin
         // If the address is allowed as non-admin, do setEnabled
         // If the address is neither, do setNone
         if (accessInfo.contractsAdmin) {
-            contractAllowListPrecompile.setAdmin(accessInfo.addressToUpdate);
+            contractAllowListPrecompile.setAdmin(_addressToUpdate);
         } else if (accessInfo.contractsAllowed) {
-            contractAllowListPrecompile.setEnabled(accessInfo.addressToUpdate);
+            contractAllowListPrecompile.setEnabled(_addressToUpdate);
         } else {
-            contractAllowListPrecompile.setNone(accessInfo.addressToUpdate);
+            contractAllowListPrecompile.setNone(_addressToUpdate);
         }
+
+        _updatedRole = contractAllowListPrecompile.readAllowList(
+            _addressToUpdate
+        );
+        emit ContractAllowListUpdated(_addressToUpdate, _updatedRole);
+
         // Check updated addresses to avoid minting multiple times
-        // This means VSBT can only be minted once per address
-        if (!updatedAddresses[accessInfo.addressToUpdate]) {
+        // This means VSBT and native tokens can only be minted once per address
+        if (!updatedAddresses[_addressToUpdate]) {
             // Mint the native coin to the address
             // All addresses are minted the same amount for the first invocation
-            updatedAddresses[accessInfo.addressToUpdate] = true;
+            updatedAddresses[_addressToUpdate] = true;
             nativeMinterPrecompile.mintNativeCoin(
-                accessInfo.addressToUpdate,
+                _addressToUpdate,
                 nativeCoinAmount
             );
-            // Mint VSBT if mintSubnetVSBT is true
-            if (accessInfo.mintSubnetVSBT) {
-                vsbt.mintVSBT(accessInfo.addressToUpdate);
-            }
+            emit NativeCoinMinted(_addressToUpdate, nativeCoinAmount);
+        }
+        // Mint VSBT if mintSubnetVSBT is true and the address is not already holding a VSBT
+        if (
+            accessInfo.mintSubnetVSBT && vsbt.balanceOf(_addressToUpdate) == 0
+        ) {
+            uint256 _tokenId = vsbt.mintVSBT(accessInfo.addressToUpdate);
+            emit VSBTMinted(_addressToUpdate, _tokenId);
         }
     }
 

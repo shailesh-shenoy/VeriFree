@@ -246,13 +246,6 @@ export async function updateAllowListInSubnet(message: string) {
             transport: http()
         })
 
-        // const subnetControlContract = getContract({
-        //     address: SUBNET_CONTROL_ADDRESS as `0x${string}`,
-        //     abi: verifreeSubnetControlAbi,
-        //     publicClient,
-        //     walletClient
-        // })
-
         const { request, result } = await publicClient.simulateContract({
             account,
             address: SUBNET_CONTROL_ADDRESS as `0x${string}`,
@@ -264,6 +257,30 @@ export async function updateAllowListInSubnet(message: string) {
         const txHash = await walletClient.writeContract(request);
 
         console.log(`Transaction hash: ${txHash}`);
+
+        // Store the transaction hash in the DB with the message
+        // No need to wait for this to finish
+        axios.post(`${DB_API_URL}/action/updateOne`, {
+            dataSource: DB_DATA_SOURCE,
+            database: DB_DATABASE,
+            collection: DB_ALLOWLIST_MESSAGES_COLLECTION,
+            filter: {
+                message: message
+            },
+            update: {
+                $set: {
+                    transactionHash: txHash
+                }
+            }
+        },
+            {
+                headers: {
+                    "api-key": DB_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+            }
+        )
 
     }
     catch (error: any) {

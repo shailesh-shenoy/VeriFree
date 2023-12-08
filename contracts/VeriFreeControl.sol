@@ -30,10 +30,20 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         _;
     }
 
-    // Struct for storing subnet access
+    // Struct for storing subnet access on-chain
     // This data will be synced off-chain to the VeriFree subnet
     // Future implementations will use the AWM standard for cross-chain communication
     struct SubnetAccess {
+        bool transactionsAllowed;
+        bool transactionsAdmin;
+        bool contractsAllowed;
+        bool contractsAdmin;
+        bool mintSubnetVSBT;
+    }
+
+    // Struct to encode/decode the allowlist_message.
+    struct AccessInfo {
+        address addressToUpdate;
         bool transactionsAllowed;
         bool transactionsAdmin;
         bool contractsAllowed;
@@ -148,20 +158,26 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
     ) external onlyAllowListedAdmins returns (bytes32) {
         // Create the Chainlink request
         FunctionsRequest.Request memory req;
-        // 6 arguments sent to the Chainlink function:
-        // _addressToUpdate: The address to update in the subnet allow list
-        // _transactionsAllowed: Whether transactions are allowed for the address
-        // _transactionsAdmin: Whether the address has admin access to transactions allow list
-        // _contractsAllowed: Whether contract deployments are allowed for the address
-        // _contractsAdmin: Whether the address has admin access to contracts allow list
-        // _mintSubnetVSBT: Whether the address has admin access to mint VSBT
-        string[] memory args = new string[](6);
-        args[0] = addressToString(_addressToUpdate);
-        args[1] = boolToString(_transactionsAllowed);
-        args[2] = boolToString(_transactionsAdmin);
-        args[3] = boolToString(_contractsAllowed);
-        args[4] = boolToString(_contractsAdmin);
-        args[5] = boolToString(_mintSubnetVSBT);
+        //Encode the arguments to bytes and convert to string
+        //This message will be unique and decoded on the receiving VeriFree subnet contract
+        string memory _message = bytesToHexString(
+            abi.encode(
+                AccessInfo({
+                    addressToUpdate: _addressToUpdate,
+                    transactionsAllowed: _transactionsAllowed,
+                    transactionsAdmin: _transactionsAdmin,
+                    contractsAllowed: _contractsAllowed,
+                    contractsAdmin: _contractsAdmin,
+                    mintSubnetVSBT: _mintSubnetVSBT
+                })
+            )
+        );
+        // 1 argument sent to the Chainlink function: _message to update the subnet allow list
+        // This implementation mimics the teleporter messenger as a Chainlink function
+        // The destination chainID and destination address are not needed for this implementation
+        // But will be needed for future implementations using the AWM standard
+        string[] memory args = new string[](1);
+        args[0] = _message;
 
         req.initializeRequestForInlineJavaScript(allowListSourceJS);
         req.addSecretsReference(encryptedSecretsURL);
@@ -257,35 +273,26 @@ contract VeriFreeControl is FunctionsClient, ConfirmedOwner {
         encryptedSecretsURL = _encryptedSecretsURL;
     }
 
-    // Helper functions - Coversions
-    function boolToString(bool _bool) private pure returns (string memory) {
-        if (_bool) {
-            return "true";
-        } else {
-            return "false";
-        }
-    }
+    // Helper functions
 
     /**
-     * @dev Convert an address to a string
-     * converted address is lowercase and does not have the 0x prefix
-     * @param x The address to convert to a string
-     * @return s The string representation of the address
+     * @dev Convert bytes to hex string
+     * Intended to be used to convert the allow list message to hex string as required by the Chainlink function
+     * @param _bytes The bytes to convert to hex string
+     * @return The hex string
      */
-    function addressToString(address x) private pure returns (string memory) {
-        bytes memory s = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            bytes1 b = bytes1(uint8(uint(uint160(x)) / (2 ** (8 * (19 - i)))));
-            bytes1 hi = bytes1(uint8(b) / 16);
-            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
-            s[2 * i] = char(hi);
-            s[2 * i + 1] = char(lo);
-        }
-        return string(s);
-    }
 
-    function char(bytes1 b) internal pure returns (bytes1 c) {
-        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
-        else return bytes1(uint8(b) + 0x57);
+    function bytesToHexString(
+        bytes memory _bytes
+    ) internal pure returns (string memory) {
+        bytes16 alphabet = "0123456789abcdef";
+        bytes memory str = new bytes(2 + _bytes.length * 2);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint256 i = 0; i < _bytes.length; i++) {
+            str[2 + i * 2] = alphabet[uint8(_bytes[i] >> 4)];
+            str[3 + i * 2] = alphabet[uint8(_bytes[i] & 0x0f)];
+        }
+        return string(str);
     }
 }

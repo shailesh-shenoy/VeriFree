@@ -33,15 +33,6 @@ task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses
         const validDomainsSourceJS = fs.readFileSync(path.join(__dirname, "../chainlink-functions/addValidDomain.js")).toString();
         const allowListSourceJS = fs.readFileSync(path.join(__dirname, "../chainlink-functions/updateSubnetAllowList.js")).toString();
 
-        // const gatewayUrls = [
-        //     "https://01.functions-gateway.testnet.chain.link/",
-        //     "https://02.functions-gateway.testnet.chain.link/",
-        // ];
-        // const explorerUrl = "https://testnet.snowtrace.io/";
-
-        // const domainArgs = ["@northeastern.edu"]
-        // const allowListArgs = ["0x6c5E97869C703E9DBbd605D1728937C99Bee2f4a", "true", "true", "true", "false"]
-
         spinner.start();
 
         const veriFreeControl: VeriFreeControl = await hre.ethers.deployContract("VeriFreeControl", [
