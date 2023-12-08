@@ -22,9 +22,8 @@ import {
     Tooltip,
     useToast,
 } from '@chakra-ui/react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import axios from 'axios'
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fromHex } from 'viem'
 import { useAccount } from 'wagmi'
 

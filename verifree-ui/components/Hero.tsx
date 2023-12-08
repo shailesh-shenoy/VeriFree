@@ -20,17 +20,10 @@ export default function Hero() {
                             as={"span"}
                             position={"relative"}
                             fontWeight={700}
+                            fontSize={"7xl"}
                             zIndex={1}
-                            _after={{
-                                content: "''",
-                                width: "full",
-                                height: useBreakpointValue({ base: "20%" }),
-                                position: "absolute",
-                                bottom: 6,
-                                left: 0,
-                                bg: "primary.400",
-                                zIndex: -1,
-                            }}
+                            bgGradient="linear(to-r, #7b3fe4,#e84142)"
+                            bgClip="text"
                         >
                             VeriFree -
                         </Text>
