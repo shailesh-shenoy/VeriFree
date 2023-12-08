@@ -12,6 +12,7 @@ const POLYGON_MUMBAI_RPC_URL = process.env.POLYGON_MUMBAI_RPC_URL;
 const OPTIMISM_GOERLI_RPC_URL = process.env.OPTIMISM_GOERLI_RPC_URL;
 const ARBITRUM_TESTNET_RPC_URL = process.env.ARBITRUM_TESTNET_RPC_URL;
 const AVALANCHE_FUJI_RPC_URL = process.env.AVALANCHE_FUJI_RPC_URL;
+const VERIFREE_RPC_URL = process.env.VERIFREE_RPC_URL;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -68,6 +69,11 @@ const config: HardhatUserConfig = {
       url: AVALANCHE_FUJI_RPC_URL !== undefined ? AVALANCHE_FUJI_RPC_URL : '',
       accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
       chainId: 43113
+    },
+    veriFreeSubnet: {
+      url: VERIFREE_RPC_URL ?? '',
+      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+      chainId: 1112316
     }
   }
 };
