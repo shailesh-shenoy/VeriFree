@@ -7,7 +7,6 @@ import { getEncryptedGistURL, getPrivateKey, getProviderRpcUrl, getRouterConfig 
 import { ethers } from "ethers";
 import { DestinationVSBTMinter, VeriFreeControl } from "../typechain-types";
 import { Spinner } from "../utils/spinner";
-import { LINK_ADDRESSES } from "./constants";
 task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses chainlink functions to update the valid domains and allowlist on subnet`)
     .addOptionalParam(`router`, `The address of the Router contract on the destination blockchain`)
     .setAction(async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
@@ -24,8 +23,7 @@ task(`deploy-verifree-control`, `Deploys VeriFreeControl.sol contract which uses
         const spinner: Spinner = new Spinner();
 
         // CL functions parameters
-        const router = "0xA9d587a00A31A52Ed70D6026794a8FC5E2F5dCb0"
-        // const donHostedSecretsSlotID = 0;
+        const router = "0xA9d587a00A31A52Ed70D6026794a8FC5E2F5dCb0";
         const subscriptionId = 1618;
         const donId = "fun-avalanche-fuji-1";
         const donIdBytes32 = ethers.encodeBytes32String(donId);

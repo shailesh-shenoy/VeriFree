@@ -1,5 +1,5 @@
 // Get arguments from the smart contract
-const message = input[0];
+const message = args[0];
 
 // Get the API key from secrets
 if (!secrets.apiKey) {

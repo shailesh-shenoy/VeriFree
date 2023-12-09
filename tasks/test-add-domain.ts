@@ -19,7 +19,7 @@ task("test-add-domain", "Initialize VeriFree control contract and test adding a 
         spinner.start();
 
         const domainToAdd = "sjsu.edu";
-        const veriFreeControl = await hre.ethers.getContractAt("VeriFreeControl", "0x7dBE168BBd6E29750134226d97BFcbc01748A733");
+        const veriFreeControl = await hre.ethers.getContractAt("VeriFreeControl", "0x1ac16DDefA7F428CA761972eFE2FC6Eaf686ec0c");
 
         console.log(`ℹ️  Attempting to add domain ${domainToAdd} to VeriFreeControl contract ${veriFreeControl.target} on the ${hre.network.name} blockchain`);
         const requestTx = await veriFreeControl.addValidDomains(domainToAdd);

@@ -284,7 +284,7 @@ export async function updateAllowListInSubnet(message: string) {
 
     }
     catch (error: any) {
-        console.log("Message already in DB")
+        console.log(`Error processing the message: ${message} with error message: ${error.message}`)
         return
     }
 }

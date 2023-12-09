@@ -4,7 +4,7 @@ import { getPrivateKey, getProviderRpcUrl } from "./utils";
 import { Wallet, ethers } from "ethers";
 import { Spinner } from "../utils/spinner";
 
-task("test-allow-subnet-access", "Allow access to given address on subnet")
+task("test-allow-subnet-access", "Allow access on VeriFreeControl address to given address on subnet")
     .setAction(async (taskArgs, hre) => {
         // Deploy VeriFree control contract
         const privateKey = getPrivateKey();
@@ -18,13 +18,13 @@ task("test-allow-subnet-access", "Allow access to given address on subnet")
 
         spinner.start();
 
-        const addressToUpdate = "0x2dEE2342b526546E6aE2C61b05D2FBb3464dE50d"
+        const addressToUpdate = "0x69Fcc8Ce8E31B4dFBc40249dcCb4F5daAD825748"
         const transactionsAllowed = true;
         const transactionsAdmin = false;
         const contractsAllowed = true;
         const contractsAdmin = false;
         const mintSubnetVSBT = true;
-        const veriFreeControl = await hre.ethers.getContractAt("VeriFreeControl", "0x7dBE168BBd6E29750134226d97BFcbc01748A733");
+        const veriFreeControl = await hre.ethers.getContractAt("VeriFreeControl", "0x1ac16DDefA7F428CA761972eFE2FC6Eaf686ec0c");
 
         console.log(`ℹ️  Attempting to add update permissions for ${addressToUpdate} on VeriFreeControl contract ${veriFreeControl.target} on the ${hre.network.name} blockchain`);
         const requestTx = await veriFreeControl.updateSubnetAllowList(addressToUpdate, transactionsAllowed, transactionsAdmin, contractsAllowed, contractsAdmin, mintSubnetVSBT);
