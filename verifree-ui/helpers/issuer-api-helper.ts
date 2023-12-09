@@ -7,6 +7,7 @@ const issuerApiUser = process.env.ISSUER_API_USER ?? "";
 const issuerApiPassword = process.env.ISSUER_API_PASSWORD ?? "";
 const issuerCreateLinkUri = process.env.ISSUER_CREATE_LINK_URI ?? "";
 const issuerSchemaId = process.env.ISSUER_SCHEMA_ID ?? "";
+const issuerClaimLimit = Number(process.env.ISSUER_CLAIM_LIMIT) ?? 1;
 const expirationTimeInMinutes =
   Number(process.env.ISSUER_CLAIM_EXPIRY_MIN) ?? 0;
 
@@ -27,7 +28,7 @@ export const createLink = async (
   const creatLinkRequest: StudentVCSchema = {
     schemaID: issuerSchemaId,
     claimLinkExpiration: claimLinkExpiration.toISOString(),
-    limitedClaims: 1,
+    limitedClaims: issuerClaimLimit,
     signatureProof: true,
     mtProof: false,
     credentialSubject: {
@@ -37,16 +38,6 @@ export const createLink = async (
     },
   };
 
-  //   let config = {
-  //     method: "POST",
-  //     maxBodyLength: Infinity,
-  //     url: `${issuerApiUrl}/${issuerCreateLinkUri}`,
-  //     headers: {
-  //       authorization: `Basic ${authorizationHeader}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //     data: JSON.stringify(creatLinkRequest),
-  //   };
 
   const response = await axios.post(
     `${issuerApiUrl}/${issuerCreateLinkUri}`,
@@ -58,7 +49,7 @@ export const createLink = async (
       },
     }
   );
-  //   const response = await axios.request(config);
+
   // Handle error by checking the response status code against 2xx HTTP status codes
 
   if (response.status !== 201) {
