@@ -112,7 +112,7 @@ task('set-zkrequest', 'Sets the zkrequest for the student verifier contract')
         ).toString();
 
         // add the address of the contract just deployed
-        const studentVerifierAddress = "0x6c4146DE0F24e2A2a3246884ecc5811fEb0Fe31f"
+        const studentVerifierAddress = "0x7000bA04054d532D21745Ce0566666060732501B"
 
         const studentVerifier = await hre.ethers.getContractAt("StudentVerifier", studentVerifierAddress)
 

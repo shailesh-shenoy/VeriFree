@@ -22,13 +22,15 @@ task(`deploy-student-verifier`, `Deploys StudentVerifier.sol smart contract whic
         const wallet = new Wallet(privateKey);
         const deployer = wallet.connect(provider);
         const linkToken = await hre.ethers.getContractAt("@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20", linkAddress);
+        // Set the gas limit to 500000
+        const ccipGasLimit = 500000;
 
         const spinner: Spinner = new Spinner();
 
         console.log(`ℹ️  Attempting to deploy StudentVerifier smart contract on the ${hre.network.name} blockchain using ${deployer.address} address, with the Router address ${routerAddress}, destinationChain ${destinationChainSelector}, destinationMinterAddress ${destinationMinterAddress} and LINK address ${linkAddress} provided as constructor arguments`);
         spinner.start();
 
-        const studentVerifier: StudentVerifier = await hre.ethers.deployContract("StudentVerifier", [routerAddress, destinationChainSelector, destinationMinterAddress, linkAddress],
+        const studentVerifier: StudentVerifier = await hre.ethers.deployContract("StudentVerifier", [routerAddress, destinationChainSelector, destinationMinterAddress, linkAddress, ccipGasLimit],
             {
                 libraries: {
                     PoseidonFacade: "0xD65f5Fc521C4296723c6Eb16723A8171dCC12FB0"
@@ -43,6 +45,8 @@ task(`deploy-student-verifier`, `Deploys StudentVerifier.sol smart contract whic
         // Transfer 2 LINK to the StudentVerifier contract
         const linkAmount = ethers.parseEther("2");
         const transferTx = await linkToken.transfer(studentVerifier.target, linkAmount);
+        const ccipLimitInContract = await studentVerifier.ccipGasLimit();
 
         console.log(`✅ ${linkAmount} LINK Joules token transferred to StudentVerifier contract. Transaction hash: ${transferTx.hash}`);
+        console.log(`✅ ccipGasLimit in StudentVerifier contract: ${ccipLimitInContract}`);
     })

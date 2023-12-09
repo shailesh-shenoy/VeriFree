@@ -15,6 +15,7 @@ contract StudentVerifier is ZKPVerifier {
     uint64 public immutable destinationChainSelector;
     address public immutable receiverAddress;
     IERC20 public immutable linkToken;
+    uint256 public ccipGasLimit;
 
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public addressToId;
@@ -55,12 +56,14 @@ contract StudentVerifier is ZKPVerifier {
         address _routerAddress,
         uint64 _destinationChainSelector,
         address _receiverAddress,
-        address _linkAddress
+        address _linkAddress,
+        uint256 _ccipGasLimit
     ) {
         routerAddress = _routerAddress;
         destinationChainSelector = _destinationChainSelector;
         receiverAddress = _receiverAddress;
         linkToken = IERC20(_linkAddress);
+        ccipGasLimit = _ccipGasLimit;
     }
 
     /**
@@ -151,7 +154,7 @@ contract StudentVerifier is ZKPVerifier {
             data: abi.encode(_verifiedAddress),
             tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: Client._argsToBytes(
-                Client.EVMExtraArgsV1({gasLimit: 200_000, strict: false})
+                Client.EVMExtraArgsV1({gasLimit: ccipGasLimit, strict: false})
             ),
             // Set the feeToken to a feeTokenAddress, indicating specific asset will be used for fees
             feeToken: address(linkToken)
