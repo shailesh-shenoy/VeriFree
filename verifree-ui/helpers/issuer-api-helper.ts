@@ -9,7 +9,7 @@ const issuerCreateLinkUri = process.env.ISSUER_CREATE_LINK_URI ?? "";
 const issuerSchemaId = process.env.ISSUER_SCHEMA_ID ?? "";
 const issuerClaimLimit = Number(process.env.ISSUER_CLAIM_LIMIT) ?? 1;
 const expirationTimeInMinutes =
-  Number(process.env.ISSUER_CLAIM_EXPIRY_MIN) ?? 0;
+  Number(process.env.ISSUER_CLAIM_EXPIRY_MIN) ?? 120;
 
 export const createLink = async (
   issueRequest: IssueRequest

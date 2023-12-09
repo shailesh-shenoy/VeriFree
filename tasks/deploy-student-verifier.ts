@@ -22,8 +22,8 @@ task(`deploy-student-verifier`, `Deploys StudentVerifier.sol smart contract whic
         const wallet = new Wallet(privateKey);
         const deployer = wallet.connect(provider);
         const linkToken = await hre.ethers.getContractAt("@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20", linkAddress);
-        // Set the gas limit to 500000
-        const ccipGasLimit = 500000;
+        // Set the gas limit to 800000
+        const ccipGasLimit = 800000;
 
         const spinner: Spinner = new Spinner();
 
