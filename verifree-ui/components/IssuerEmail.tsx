@@ -50,7 +50,8 @@ export const IssuerEmail = ({
         <Text>
           Your Verified Student Credential will be tied to your email ID:{" "}
           {studentEmail} and wallet address: {address}, represented as an
-          integer: {addressLast15.toString()}
+          integer: {addressLast15.toString()}.
+          Ensure that you have the same address in your Metamask mobile wallet when sending the on-chain proof.
         </Text>
         <Text>This QR will expire on {expirationDate.toLocaleString()}.</Text>
       </Container>
