@@ -75,7 +75,7 @@ function calculateQueryHash(
     return quaryHash;
 }
 
-task('set-zkrequest', 'Gets the balance of MyNFTs for provided address')
+task('set-zkrequest', 'Sets the zkrequest for the student verifier contract')
     .setAction(async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
 
         // you can run https://go.dev/play/p/3id7HAhf-Wi to get schema hash and claimPathKey using YOUR schema
@@ -112,7 +112,7 @@ task('set-zkrequest', 'Gets the balance of MyNFTs for provided address')
         ).toString();
 
         // add the address of the contract just deployed
-        const studentVerifierAddress = "0x6c5E97869C703E9DBbd605D1728937C99Bee2f4a"
+        const studentVerifierAddress = "0x6c4146DE0F24e2A2a3246884ecc5811fEb0Fe31f"
 
         const studentVerifier = await hre.ethers.getContractAt("StudentVerifier", studentVerifierAddress)
 
@@ -126,7 +126,7 @@ task('set-zkrequest', 'Gets the balance of MyNFTs for provided address')
             type: 'https://iden3-communication.io/proofs/1.0/contract-invoke-request',
             thid: '7f38a193-0918-4a48-9fac-36adfdb8b542',
             body: {
-                reason: 'airdrop participation',
+                reason: 'On-Chain Student Verification',
                 transaction_data: {
                     contract_address: studentVerifierAddress,
                     method_id: 'b68967e2',

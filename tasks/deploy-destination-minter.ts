@@ -26,13 +26,16 @@ task(`deploy-destination-minter`, `Deploys DestinationVSBTMinter.sol smart contr
         spinner.start();
 
         const _initialSourceChainSelector = getRouterConfig("polygonMumbai").chainSelector;
+        const veriFreeControlAddress = "0xE087BF9144Be0bfEeCBfbB74F873d5Db122EfDBF"
 
-        const destinationVSBTMinter: DestinationVSBTMinter = await hre.ethers.deployContract("DestinationVSBTMinter", [routerAddress, _initialSourceChainSelector, tokenUri]);
+        const destinationVSBTMinter: DestinationVSBTMinter = await hre.ethers.deployContract("DestinationVSBTMinter", [routerAddress, _initialSourceChainSelector, veriFreeControlAddress, tokenUri]);
         await destinationVSBTMinter.waitForDeployment();
 
+        console.log(`✅ DestinationMinter contract deployed at address ${destinationVSBTMinter.target} on the ${hre.network.name} blockchain`);
 
         spinner.stop();
         const vsbtAddress = await destinationVSBTMinter.vsbt();
-        console.log(`✅ DestinationMinter contract deployed at address ${destinationVSBTMinter.target} with VSBT contract at ${vsbtAddress} on the ${hre.network.name} blockchain`);
+        const veriFreeControlAddressOnDestination = await destinationVSBTMinter.veriFreeControl();
+        console.log(`✅ DestinationMinter contract deployed at address ${destinationVSBTMinter.target} with VSBT contract at ${vsbtAddress} & veriFreeControl at ${veriFreeControlAddressOnDestination} on the ${hre.network.name} blockchain`);
 
     })

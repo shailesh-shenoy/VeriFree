@@ -20,7 +20,7 @@ task(`deploy-dao`, `Deploys VeriFreeDAO.sol contract with VSBT as voting token`)
 
         const spinner: Spinner = new Spinner();
 
-        const vsbtAddress = "0x3db3Ff3D136e7739c50620c8a12266bDf02132bF"
+        const vsbtAddress = "0x06d494344d71Af2146611aA6FAFf8e46959D2292"
 
         spinner.start();
 

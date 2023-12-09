@@ -5,9 +5,14 @@ import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {VerifiedStudentSBT} from "./VerifiedStudentSBT.sol";
+import {IVeriFreeControl} from "./IVeriFreeControl.sol";
 
 contract DestinationVSBTMinter is CCIPReceiver, Ownable {
+    // State variable for the VSBT contract
     VerifiedStudentSBT public vsbt;
+
+    // VeriFree Control contract address
+    IVeriFreeControl public veriFreeControl;
 
     // Mapping to keep track of allowed source chains
     mapping(uint64 => bool) public allowListedSourceChains;
@@ -19,6 +24,7 @@ contract DestinationVSBTMinter is CCIPReceiver, Ownable {
     event ContractInitialized(
         address indexed _vsbtAddress,
         uint64 indexed _initialSourceChainSelector,
+        address indexed _veriFreeControlAddress,
         string _tokenUri
     );
 
@@ -46,6 +52,24 @@ contract DestinationVSBTMinter is CCIPReceiver, Ownable {
         uint256 _tokenId
     );
 
+    // Event emitted when a request is sent to the VeriFree Control contract.
+    event VeriFreeControlRequestSent(
+        address indexed _verifierAddress,
+        address indexed _addressToUpdate,
+        bytes32 indexed _requestId,
+        bool _transactionsAllowed,
+        bool _transactionsAdmin,
+        bool _contractsAllowed,
+        bool _contractsAdmin,
+        bool _mintSubnetVSBT
+    );
+
+    // Event emitted when the token URI for the VSBT contract is updated.
+    event VSBTTokenUriUpdated(string _tokenUri);
+
+    // Event emitted when the VeriFree Control contract address is updated.
+    event VeriFreeControlAddressUpdated(address _veriFreeControlAddress);
+
     error SourceChainNotAllowlisted(uint64 sourceChainSelector);
     error SenderNotAllowlisted(address sender);
 
@@ -59,13 +83,18 @@ contract DestinationVSBTMinter is CCIPReceiver, Ownable {
     constructor(
         address _router,
         uint64 _initialSourceChainSelector,
+        address _veriFreeControlAddress,
         string memory _tokenUri
     ) CCIPReceiver(_router) {
         vsbt = new VerifiedStudentSBT(_tokenUri);
+        veriFreeControl = IVeriFreeControl(_veriFreeControlAddress);
+        // No senders are allowed by default.
+        // Student Verifier on source chain will be added to allowListedSenders later.
         allowListedSourceChains[_initialSourceChainSelector] = true;
         emit ContractInitialized(
             address(vsbt),
             _initialSourceChainSelector,
+            _veriFreeControlAddress,
             _tokenUri
         );
     }
@@ -94,6 +123,30 @@ contract DestinationVSBTMinter is CCIPReceiver, Ownable {
         // Mint a new VSBT to the receiver address.
         uint256 _tokenId = vsbt.mintVSBT(_receiverAddress);
         emit MintCallSuccessful(_verifierAddress, _receiverAddress, _tokenId);
+
+        // Allow receiver address on the VeriFree Subnet
+        // by calling the VeriFree Control contract's updateAllowList function.
+        // This will allow the receiver address to send transactions and deploy contracts on the VeriFree Subnet.
+
+        bytes32 _requestId = veriFreeControl.updateSubnetAllowList(
+            _receiverAddress,
+            true, // transactionsAllowed
+            false, // Not transactionsAdmin
+            true, // contractsAllowed
+            false, // Not contractsAdmin
+            true // mintSubnetVSBT
+        );
+
+        emit VeriFreeControlRequestSent(
+            _verifierAddress,
+            _receiverAddress,
+            _requestId,
+            true,
+            false,
+            true,
+            false,
+            true
+        );
     }
 
     /**
@@ -120,5 +173,25 @@ contract DestinationVSBTMinter is CCIPReceiver, Ownable {
     ) external onlyOwner {
         allowListedSenders[_senderAddress] = _allow;
         emit SenderUpdated(_senderAddress, _allow);
+    }
+
+    /**
+     * @dev Update the VeriFree Control contract address.
+     * @param _veriFreeControlAddress The new VeriFree Control contract address.
+     */
+    function updateVeriFreeControlAddress(
+        address _veriFreeControlAddress
+    ) external onlyOwner {
+        veriFreeControl = IVeriFreeControl(_veriFreeControlAddress);
+        emit VeriFreeControlAddressUpdated(_veriFreeControlAddress);
+    }
+
+    /**
+     * @dev Update the token URI for the VSBT contract.
+     * @param _tokenUri The new token URI.
+     */
+    function updateTokenUri(string memory _tokenUri) external onlyOwner {
+        vsbt.updateTokenUri(_tokenUri);
+        emit VSBTTokenUriUpdated(_tokenUri);
     }
 }

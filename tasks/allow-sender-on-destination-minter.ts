@@ -4,7 +4,8 @@ import { getPrivateKey, getProviderRpcUrl } from "./utils";
 import { Wallet, ethers } from "ethers";
 import { Spinner } from "../utils/spinner";
 
-task('allow', 'Updates the allowed source address on the DestinationMinter contract')
+task('allow-sender-on-destination-minter', 'Updates the allowed source address on the DestinationVSBTMinter contract')
+    .addParam(`addressToAllow`, `The address to allow as a sender on the DestinationMinter contract`)
     .setAction(async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
         const privateKey = getPrivateKey();
         const rpcProviderUrl = getProviderRpcUrl(hre.network.name);
@@ -15,10 +16,13 @@ task('allow', 'Updates the allowed source address on the DestinationMinter contr
 
         const spinner: Spinner = new Spinner();
 
-        const destinationMinterAddress = "0x1FEF52237b648dA7FD5c48878ca7DEB306B57339"
-        const allowedSenderAddress = "0x6c5E97869C703E9DBbd605D1728937C99Bee2f4a"
+        const allowedSenderAddress = taskArguments.addressToAllow;
+
+        const destinationMinterAddress = "0x1436bD3d666D2904622c1Dee7A4b43c198084046"; // DestinationMinter address on Avalanche Fuji
 
         spinner.start();
+
+        console.log(`ℹ️  Attempting to allow address ${allowedSenderAddress} to invoke DestinationMinter contract ${destinationMinterAddress} on the ${hre.network.name} blockchain`);
         // Get the deployed destinationMinter contract with the address
         const destinationVSBTMinter = await hre.ethers.getContractAt("DestinationVSBTMinter", destinationMinterAddress);
         await destinationVSBTMinter.updateSender(allowedSenderAddress, true);
