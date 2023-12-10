@@ -73,7 +73,7 @@ const config: HardhatUserConfig = {
     veriFreeSubnet: {
       url: VERIFREE_RPC_URL ?? '',
       accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-      chainId: 1112316
+      chainId: 1162197
     }
   }
 };

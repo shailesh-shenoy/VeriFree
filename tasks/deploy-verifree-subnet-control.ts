@@ -32,7 +32,7 @@ task(`deploy-verifree-subnet-control`, `Deploys VeriFreeSubnetControl.sol contra
         console.log(`ℹ️  cChainOriginId in bytes32: ${cChainOriginId}`);
         console.log(`ℹ️  cChainOriginId decoded: ${ethers.decodeBytes32String(cChainOriginId)}`);
 
-        const verifreeControlAddressCChain = "0x1ac16DDefA7F428CA761972eFE2FC6Eaf686ec0c";
+        const verifreeControlAddressCChain = "0xE087BF9144Be0bfEeCBfbB74F873d5Db122EfDBF";
 
         const nativeCoinAmount = ethers.parseEther("1000");
         console.log(`ℹ️  nativeCoinAmount: ${nativeCoinAmount}`);
