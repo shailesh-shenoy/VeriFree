@@ -50,7 +50,7 @@ export default function Hero() {
                         </Button>
                         <Button
                             as={NextLink}
-                            href="/access-verifree-blockchain"
+                            href="/access-verifree-subnet"
                             rounded={"full"}
                             variant="outline"
                             colorScheme={"red"}
