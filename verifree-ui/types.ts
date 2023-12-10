@@ -80,7 +80,7 @@ export const ABOUT_ITEMS: Array<NavItem> = [
   },
   {
     label: "Github",
-    link: "https://github.com/shailesh-shenoy/wagerwinz",
+    link: "https://github.com/shailesh-shenoy/VeriFree",
   },
   {
     label: "VeriFree Subnet",
