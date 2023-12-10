@@ -1,5 +1,5 @@
 import { Heading } from "@chakra-ui/react";
 
 export default function HowItWorks() {
-    <Heading>HOW IT WORKS</Heading>
+    <Heading>HOW IT WORKS (Or does it?)</Heading>
 }
