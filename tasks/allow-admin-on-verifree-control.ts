@@ -17,6 +17,7 @@ task('allow-admin-on-verifree-control', 'Updates the allowed admin address on th
 
         const spinner: Spinner = new Spinner();
 
+        // Address from the command line
         const addressToAllow = taskArguments.addressToAllow;
         const veriFreeControlAddress = "0xE087BF9144Be0bfEeCBfbB74F873d5Db122EfDBF"
 
