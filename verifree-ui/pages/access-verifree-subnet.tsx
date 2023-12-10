@@ -19,7 +19,7 @@ export default function AccessVeriFreeSubnet() {
                         <ListItem><strong>RPC URL</strong>: {process.env.NEXT_PUBLIC_SUBNET_RPC_URL}</ListItem>
                         <ListItem><strong>Chain ID</strong>: {process.env.NEXT_PUBLIC_SUBNET_CHAIN_ID}</ListItem>
                         <ListItem><strong>Symbol</strong>: VFT</ListItem>
-                        <ListItem><strong>Block Explorer URL</strong>: "(Keep empty)"</ListItem>
+                        <ListItem><strong>Block Explorer URL</strong>: (Keep empty)</ListItem>
                     </UnorderedList>
                 </ListItem>
                 <ListItem>

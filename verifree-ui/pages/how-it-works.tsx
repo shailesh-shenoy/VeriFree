@@ -33,7 +33,7 @@ export default function HowItWorks() {
                     <Text size="lg">Now you are ready to get verified on VeriFree!</Text>
                     <Text size="lg">Go to the <Link as={NextLink} href="/get-verified" target="_blank" color="blue">Get Verified</Link> page.</Text>
                     <Text size="lg">Connect to VeriFree using your mobile wallet by scanning the RainbowKit Metamask QR Code, or using the metamask browser extension.</Text>
-                    <Text size="lg">Enter your email address (before the @), select on of the supported domains, and click on the "Get Verified" button.</Text>
+                    <Text size="lg">Enter your email address (before the @), select on of the supported domains, and click on the Get Verified button.</Text>
                     <Text size="lg">Hovering over the Input component will provide helpful tips. Your inputs will look like this.</Text>
                     <Image m={4} alt={"Get Verified"} width={"auto"} src={"/get-verified-sc1.png"} border="1px solid purple" />
                     <Text size="lg">You will receive an email wil further instructions. Note that you cannot use the same email multiple times.</Text>
