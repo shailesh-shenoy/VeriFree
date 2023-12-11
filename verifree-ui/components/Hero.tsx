@@ -56,7 +56,7 @@ export default function Hero() {
                             colorScheme={"red"}
 
                         >
-                            Access VeriFree  Blockchain
+                            Access VeriFree Blockchain
                         </Button>
                     </Stack>
                 </Stack>
